@@ -31,13 +31,13 @@
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "@azure/identity": "^4.10.0",
-    "@azure/keyvault-secrets": "^4.10.0",
-    "bcryptjs": "^3.0.2",
+    "@azure/identity": "^3.2.0",
+    "@azure/keyvault-secrets": "^4.7.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.0",
     "mongoose": "^8.15.1"
   }
 }
