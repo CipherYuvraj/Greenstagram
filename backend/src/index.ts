@@ -2,7 +2,7 @@ import connectDB from "./db";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import {User} from "./models";
+import {User} from "./models/Index";
 
 dotenv.config();
 const app = express();
@@ -28,7 +28,7 @@ app.listen(PORT, () => {
 app.post('/test/user', async (_req, res) => {
   try {
     const testUser = new User({
-      username: 'testuser_',
+      username: 'yuvraj',
       email: `test${Date.now()}@example.com`,
       password: 'testpassword123',
       bio: 'Test user for schema validation',

@@ -1,8 +1,8 @@
-export { User } from './user';
-export type { IUser } from './user';
-export { Post } from './post';
-export type { IPost } from './post';
-export { Challenge } from './challenge';
-export type { IChallenge } from './challenge';
-export { Comment } from './comment';
-export type { IComment } from './comment';
+export { User } from './User';
+export type { IUser } from './User';
+export { Post } from './Post';
+export type { IPost } from './Post';
+export { Challenge } from './Challenge';
+export type { IChallenge } from './Challenge';
+export { Comment } from './Comment';
+export type { IComment } from './Comment';
