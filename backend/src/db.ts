@@ -1,11 +1,62 @@
 import mongoose from "mongoose";
+import { DefaultAzureCredential } from "@azure/identity";
+import { SecretClient } from "@azure/keyvault-secrets";
+
+let keyVaultClient: SecretClient | null = null;
+
+// Initialize Key Vault client if URI is provided
+const initializeKeyVault = () => {
+    const vaultUrl = process.env.KEYVAULT_URI;
+    
+    if (vaultUrl) {
+        try {
+            const credential = new DefaultAzureCredential();
+            keyVaultClient = new SecretClient(vaultUrl, credential);
+            console.log("🔐 Azure Key Vault client initialized");
+        } catch (error) {
+            console.warn("⚠️ Failed to initialize Key Vault client:", error);
+        }
+    } else {
+        console.log("ℹ️ No Key Vault URI provided, using environment variables");
+    }
+};
+
+// Fetch secret from Key Vault with fallback to environment variable
+const getSecret = async (secretName: string, envVarName: string): Promise<string> => {
+    if (keyVaultClient) {
+        try {
+            const secret = await keyVaultClient.getSecret(secretName);
+            if (secret.value) {
+                console.log(`✅ Retrieved ${secretName} from Key Vault`);
+                return secret.value;
+            }
+        } catch (error) {
+            console.warn(`⚠️ Failed to fetch ${secretName} from Key Vault:`, error);
+        }
+    }
+    
+    // Fallback to environment variable
+    const envValue = process.env[envVarName];
+    if (envValue) {
+        console.log(`📄 Using ${envVarName} from environment variables`);
+        return envValue;
+    }
+    
+    throw new Error(`❌ Neither Key Vault secret '${secretName}' nor environment variable '${envVarName}' is available`);
+};
 
 const connectDB = async () => {
     try {
-        const mongoUri = process.env.MONGODB_URI;
+        // Initialize Key Vault client
+        initializeKeyVault();
         
-        if (!mongoUri) {
-            throw new Error('MONGODB_URI is not defined in environment variables');
+        // Get MongoDB URI - try Key Vault first, fallback to env var
+        let mongoUri: string;
+        try {
+            mongoUri = await getSecret("mongodb-uri", "MONGODB_URI");
+        } catch (error) {
+            console.error("❌ Failed to get MongoDB URI:", error);
+            throw error;
         }
 
         await mongoose.connect(mongoUri, {
