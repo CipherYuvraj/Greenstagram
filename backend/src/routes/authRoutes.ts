@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import authService from '../services/authService';
+import { authService } from '../services/authService';
 import { authenticate } from '../middleware/authMiddleware';
 import {User} from '../models/User'; // Add the User model import
 

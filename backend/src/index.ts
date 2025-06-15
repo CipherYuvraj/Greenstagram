@@ -1,9 +1,20 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import connectDB from "./db";
-import { User } from "./models/Index";
-import authRoutes from './routes/authRoutes';
+import helmet from "helmet";
+import compression from "compression";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+import { connectDB } from "./config/database";
+import { logger } from "./utils/logger";
+
+// Routes
+import authRoutes from './routes/auth';
+import aiRoutes from './routes/ai';
+// TODO: Import additional routes as they are implemented
+// import postRoutes from './routes/posts';
+// import userRoutes from './routes/users';
+// import challengeRoutes from './routes/challenges';
 
 // Load environment variables first
 dotenv.config();
@@ -11,77 +22,146 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "https:", "data:"],
+    },
+  },
+}));
 
-// Routes
-app.use('/api/auth', authRoutes);
+// Compression middleware
+app.use(compression());
 
-// Basic routes
-app.get('/', (_req, res) => {
-  res.json({ message: 'Greenstagram API is running!' });
+// Logging middleware
+app.use(morgan('combined', {
+  stream: {
+    write: (message: string) => logger.info(message.trim())
+  }
+}));
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [
+        'https://greenstagram-frontend.azurestaticapps.net',
+        'https://your-custom-domain.com' // TODO: Replace with actual domain
+      ]
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Global rate limiting
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { 
+    success: false, 
+    message: 'Too many requests from this IP, please try again later' 
+  },
+  standardHeaders: true,
+  legacyHeaders: false
 });
+app.use(globalLimiter);
 
-// Health check route
+// Health check endpoint
 app.get('/health', (_req, res) => {
   res.json({ 
+    success: true,
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    services: {
+      keyVault: process.env.AZURE_KEY_VAULT_URL ? 'configured' : 'not configured',
+      database: 'connected', // TODO: Add actual health check
+      // TODO: Add other service health checks
+    }
   });
 });
 
-// Test user creation route
-app.post('/test/user', async (_req, res) => {
-  try {
-    const testUser = new User({
-      username: 'yuvraj',
-      email: `test${Date.now()}@example.com`,
-      password: 'testpassword123',
-      bio: 'Test user for schema validation',
-      interests: ['recycling', 'gardening']
-    });
-    
-    const savedUser = await testUser.save();
-    res.json({ 
-      success: true, 
-      message: 'User created successfully',
-      user: {
-        id: savedUser._id,
-        username: savedUser.username,
-        email: savedUser.email,
-        ecoLevel: savedUser.ecoLevel,
-        ecoPoints: savedUser.ecoPoints
-      }
-    });
-  } catch (error: any) {
-    res.status(400).json({ 
-      success: false, 
-      message: 'Error creating user',
-      error: error.message 
-    });
-  }
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
+// TODO: Add other route handlers
+// app.use('/api/posts', postRoutes);
+// app.use('/api/users', userRoutes);
+// app.use('/api/challenges', challengeRoutes);
+
+// Root endpoint
+app.get('/', (_req, res) => {
+  res.json({ 
+    success: true,
+    message: 'Greenstagram API is running!',
+    version: '1.0.0',
+    documentation: '/api/docs' // TODO: Add API documentation
+  });
+});
+
+// 404 handler
+app.use('*', (_req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
+});
+
+// Global error handler
+app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error('Unhandled error:', error);
+  
+  res.status(error.status || 500).json({
+    success: false,
+    message: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error' 
+      : error.message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: error.stack })
+  });
 });
 
 // Start server function
-const startServer = async () => {
+const startServer = async (): Promise<void> => {
   try {
-    // Connect to database (which will handle Key Vault integration)
+    // Connect to database
     await connectDB();
     
     // Start the server
     app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📍 API URL: http://localhost:${PORT}`);
-      console.log(`🔐 Key Vault: ${process.env.KEYVAULT_URI ? 'Configured' : 'Not configured'}`);
+      logger.info(`🚀 Server is running on port ${PORT}`);
+      logger.info(`📍 API URL: http://localhost:${PORT}`);
+      logger.info(`🔐 Key Vault: ${process.env.AZURE_KEY_VAULT_URL ? 'Configured' : 'Not configured'}`);
+      logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      
+      // TODO: Initialize additional services
+      // - Socket.io for real-time features
+      // - Background job processing
+      // - AI services initialization
     });
   } catch (error) {
-    console.error("❌ Failed to start server:", error);
+    logger.error("❌ Failed to start server:", error);
     process.exit(1);
   }
 };
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  process.exit(0);
+});
 
 // Start the server
 startServer();

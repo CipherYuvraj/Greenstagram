@@ -1,4 +1,5 @@
-import { Schema, model, Document } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   username: string;
@@ -12,149 +13,120 @@ export interface IUser extends Document {
   streaks: {
     current: number;
     longest: number;
-    lastActivity: Date;
+    lastActivity?: Date;
   };
   interests: string[];
-  followers: Schema.Types.ObjectId[];
-  following: Schema.Types.ObjectId[];
-  isVerified: boolean;
+  followers: mongoose.Types.ObjectId[];
+  following: mongoose.Types.ObjectId[];
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  lastLogin?: Date;
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>({
   username: {
     type: String,
-    required: [true, 'Username is required'],
+    required: true,
     unique: true,
     trim: true,
-    minlength: [3, 'Username must be at least 3 characters'],
-    maxlength: [20, 'Username cannot exceed 20 characters'],
-    match: [/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores']
+    minlength: 3,
+    maxlength: 30,
+    match: /^[a-zA-Z0-9_]+$/
   },
-  
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: true,
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
+    match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   },
-  
   password: {
     type: String,
-    required: [true, 'Password is required'],
-    minlength: [8, 'Password must be at least 8 characters'],
-    select: false // Don't include password in queries by default
+    required: true,
+    minlength: 6
   },
-  
   profilePicture: {
     type: String,
-    default: '',
-    validate: {
-      validator: function(v: string) {
-        return !v || /^https?:\/\/.+\.(jpg|jpeg|png|webp|gif)$/i.test(v);
-      },
-      message: 'Profile picture must be a valid image URL'
-    }
-  },
-  
-  bio: {
-    type: String,
-    maxlength: [150, 'Bio cannot exceed 150 characters'],
-    trim: true,
     default: ''
   },
-  
+  bio: {
+    type: String,
+    maxlength: 500,
+    default: ''
+  },
   ecoLevel: {
     type: Number,
     default: 1,
-    min: [1, 'Eco level cannot be less than 1'],
-    max: [100, 'Eco level cannot exceed 100']
+    min: 1,
+    max: 100
   },
-  
   ecoPoints: {
     type: Number,
     default: 0,
-    min: [0, 'Eco points cannot be negative']
+    min: 0
   },
-  
   badges: [{
     type: String,
-    enum: [
-      'first-post', 'eco-warrior', 'plant-lover', 'recycling-champion',
-      'energy-saver', 'water-guardian', 'green-commuter', 'zero-waste',
-      'community-leader', 'challenge-master', 'streak-keeper', 'nature-photographer'
-    ]
+    enum: ['eco_warrior', 'plant_expert', 'recycling_master', 'energy_saver', 'water_guardian']
   }],
-  
   streaks: {
     current: {
       type: Number,
       default: 0,
-      min: [0, 'Current streak cannot be negative']
+      min: 0
     },
     longest: {
       type: Number,
       default: 0,
-      min: [0, 'Longest streak cannot be negative']
+      min: 0
     },
-    lastActivity: {
-      type: Date,
-      default: Date.now
-    }
+    lastActivity: Date
   },
-  
   interests: [{
     type: String,
-    enum: [
-      'recycling', 'renewable-energy', 'sustainable-living', 'zero-waste',
-      'gardening', 'composting', 'eco-travel', 'green-technology',
-      'climate-action', 'wildlife-conservation', 'organic-farming', 'water-conservation'
-    ]
+    enum: ['recycling', 'gardening', 'renewable_energy', 'sustainable_living', 'wildlife_conservation', 'zero_waste']
   }],
-  
   followers: [{
     type: Schema.Types.ObjectId,
     ref: 'User'
   }],
-  
   following: [{
     type: Schema.Types.ObjectId,
     ref: 'User'
   }],
-  
-  isVerified: {
-    type: Boolean,
-    default: false
-  },
-  
   isActive: {
     type: Boolean,
     default: true
-  }
+  },
+  lastLogin: Date
 }, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  timestamps: true
 });
 
-// Virtual for followers count
-userSchema.virtual('followersCount').get(function() {
-  return this.followers.length;
+// Password hashing middleware
+userSchema.pre<IUser>('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  
+  try {
+    const salt = await bcrypt.genSalt(12);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error: any) {
+    next(error);
+  }
 });
 
-// Virtual for following count
-userSchema.virtual('followingCount').get(function() {
-  return this.following.length;
-});
+// Password comparison method
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
-// Index for performance
-userSchema.index({ username: 1 });
-userSchema.index({ email: 1 });
-userSchema.index({ ecoPoints: -1 });
-userSchema.index({ ecoLevel: -1 });
+// Remove password from JSON output
+userSchema.methods.toJSON = function() {
+  const user = this.toObject();
+  delete user.password;
+  return user;
+};
 
-export const User = model<IUser>('User', userSchema);
+export const User = mongoose.model<IUser>('User', userSchema);

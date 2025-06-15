@@ -1,131 +1,142 @@
-import { SecretClient } from '@azure/keyvault-secrets';
-import { DefaultAzureCredential } from '@azure/identity';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { User } from '../models/Index';
+import { User, IUser } from '../models/User';
+import { azureKeyVault } from '../config/azure';
+import { logger } from '../utils/logger';
 
 export class AuthService {
-  private keyVaultClient: SecretClient;
-  private keyVaultUri: string;
-  private defaultSecret: string;
-  
-  constructor() {
-    this.keyVaultUri = process.env.KEYVAULT_URI || '';
-    this.defaultSecret = process.env.JWT_SECRET || 'fallback-secret-for-development';
-    
-    // Only initialize Key Vault client if URI is provided
-    if (this.keyVaultUri) {
-      try {
-        const credential = new DefaultAzureCredential();
-        this.keyVaultClient = new SecretClient(this.keyVaultUri, credential);
-        console.log("✅ Azure Key Vault client initialized successfully");
-      } catch (error) {
-        console.error("❌ Failed to initialize Azure Key Vault client:", error);
-      }
-    } else {
-      console.log("⚠️ No Key Vault URI provided, using environment variable JWT secret");
-    }
-  }
-
   async getJWTSecret(): Promise<string> {
-    if (!this.keyVaultUri || !this.keyVaultClient) {
-      return this.defaultSecret;
-    }
-    
     try {
-      const secret = await this.keyVaultClient.getSecret('jwt-secret');
-      return secret.value || this.defaultSecret;
+      return await azureKeyVault.getSecret('jwt-secret', 'JWT_SECRET');
     } catch (error) {
-      console.error("❌ Failed to fetch JWT secret from Key Vault, using fallback:", error);
-      return this.defaultSecret;
+      logger.error('Failed to get JWT secret:', error);
+      throw new Error('Authentication configuration error');
     }
   }
 
   async generateToken(userId: string): Promise<string> {
-    const secret = await this.getJWTSecret();
-    return jwt.sign({ userId }, secret, { expiresIn: '7d' });
+    try {
+      const secret = await this.getJWTSecret();
+      return jwt.sign(
+        { userId },
+        secret,
+        { 
+          expiresIn: '7d',
+          issuer: 'greenstagram-api',
+          audience: 'greenstagram-app'
+        }
+      );
+    } catch (error) {
+      logger.error('Failed to generate token:', error);
+      throw error;
+    }
   }
 
-  async verifyToken(token: string): Promise<any> {
-    const secret = await this.getJWTSecret();
-    return jwt.verify(token, secret);
+  async verifyToken(token: string): Promise<{ userId: string }> {
+    try {
+      const secret = await this.getJWTSecret();
+      const decoded = jwt.verify(token, secret, {
+        issuer: 'greenstagram-api',
+        audience: 'greenstagram-app'
+      }) as { userId: string };
+      
+      return decoded;
+    } catch (error) {
+      logger.error('Token verification failed:', error);
+      throw new Error('Invalid or expired token');
+    }
   }
 
-  async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(10);
-    return bcrypt.hash(password, salt);
-  }
+  async registerUser(userData: {
+  username: string;
+  email: string;
+  password: string;
+  bio?: string;
+  interests?: string[];
+}, _email: any, _password: any, _bio: any, _interests: any): Promise<{ user: IUser; token: string }> {
+    try {
+      // Check if user already exists
+      const existingUser = await User.findOne({
+        $or: [{ email: userData.email }, { username: userData.username }]
+      });
 
-  async comparePasswords(plainPassword: string, hashedPassword: string): Promise<boolean> {
-    return bcrypt.compare(plainPassword, hashedPassword);
-  }
-
-  async registerUser(username: string, email: string, password: string, bio?: string, interests?: string[]): Promise<any> {
-    // Check if user already exists
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-    if (existingUser) {
-      if (existingUser.email === email) {
-        throw new Error('Email already in use');
-      } else {
-        throw new Error('Username already taken');
+      if (existingUser) {
+        if (existingUser.email === userData.email) {
+          throw new Error('Email already in use');
+        } else {
+          throw new Error('Username already taken');
+        }
       }
+
+      // Create new user (password will be hashed by pre-save middleware)
+      const user = new User({
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        bio: userData.bio || '',
+        interests: userData.interests || []
+      });
+
+      await user.save();
+      
+      // Update last login
+      user.lastLogin = new Date();
+      await user.save();
+
+      // Generate token
+      const token = await this.generateToken(user._id.toString());
+
+      logger.trackEvent('UserRegistered', { userId: user._id, username: user.username });
+
+      return { user, token };
+    } catch (error) {
+      logger.error('User registration failed:', error);
+      throw error;
     }
-
-    // Hash password
-    const hashedPassword = await this.hashPassword(password);
-
-    // Create new user
-    const user = new User({
-      username,
-      email,
-      password: hashedPassword,
-      bio: bio || '',
-      interests: interests || []
-    });
-
-    await user.save();
-    
-    // Generate token
-    const token = await this.generateToken((user._id as any).toString());
-
-    return {
-      userId: user._id,
-      token,
-      username: user.username,
-      email: user.email,
-      ecoLevel: user.ecoLevel,
-      ecoPoints: user.ecoPoints
-    };
   }
 
-  async loginUser(emailOrUsername: string, password: string): Promise<any> {
-    // Find user by email or username
-    const user = await User.findOne({ 
-      $or: [{ email: emailOrUsername }, { username: emailOrUsername }] 
-    });
+  async loginUser(emailOrUsername: string, password: string): Promise<{ user: IUser; token: string }> {
+    try {
+      // Find user by email or username
+      const user = await User.findOne({
+        $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
+        isActive: true
+      });
 
-    if (!user) {
-      throw new Error('Invalid credentials');
+      if (!user) {
+        throw new Error('Invalid credentials');
+      }
+
+      // Verify password
+      const isPasswordValid = await user.comparePassword(password);
+      if (!isPasswordValid) {
+        throw new Error('Invalid credentials');
+      }
+
+      // Update last login
+      user.lastLogin = new Date();
+      await user.save();
+
+      // Generate token
+      const token = await this.generateToken(user._id.toString());
+
+      logger.trackEvent('UserLoggedIn', { userId: user._id, username: user.username });
+
+      return { user, token };
+    } catch (error) {
+      logger.error('User login failed:', error);
+      throw error;
     }
+  }
 
-    // Verify password
-    const isPasswordValid = await this.comparePasswords(password, user.password);
-    if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
+  async getUserById(userId: string): Promise<IUser | null> {
+    try {
+      const user = await User.findById(userId).select('-password');
+      return user as IUser | null;
+    } catch (error) {
+      logger.error('Failed to get user by ID:', error);
+      throw error;
     }
-
-    // Generate token
-    const token = await this.generateToken((user._id as string).toString());
-
-    return {
-      userId: user._id,
-      token,
-      username: user.username,
-      email: user.email,
-      ecoLevel: user.ecoLevel,
-      ecoPoints: user.ecoPoints
-    };
   }
 }
 
-export default new AuthService();
+export const authService = new AuthService();

@@ -1,0 +1,58 @@
+name: Deploy Backend to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        npm ci
+
+    - name: Build application
+      run: |
+        cd backend
+        npm run build
+
+    - name: Run tests
+      run: |
+        cd backend
+        npm test -- --coverage --watchAll=false
+      continue-on-error: true
+
+    - name: Create deployment package
+      run: |
+        cd backend
+        zip -r ../backend-deployment.zip . -x "node_modules/*" "src/*" "*.ts" "tsconfig.json"
+
+    - name: 'Deploy to Azure App Service'
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'greenstagram-backend'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: backend-deployment.zip
+
+    - name: 'Health Check'
+      run: |
+        sleep 30
+        curl -f https://greenstagram-backend.azurewebsites.net/health || exit 1

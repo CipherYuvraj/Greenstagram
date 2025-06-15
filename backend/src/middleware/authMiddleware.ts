@@ -1,5 +1,5 @@
 import { Request, RequestHandler } from 'express';
-import authService from '../services/authService';
+import {authService} from '../services/authService';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
