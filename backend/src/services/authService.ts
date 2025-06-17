@@ -6,7 +6,9 @@ import { logger } from '../utils/logger';
 export class AuthService {
   async getJWTSecret(): Promise<string> {
     try {
-      return await azureKeyVault.getSecret('jwt-secret', 'JWT_SECRET');
+      // This will now properly attempt Key Vault first, then fallback
+      const secret = await azureKeyVault.getSecret('jwt-secret', 'JWT_SECRET');
+      return secret;
     } catch (error) {
       logger.error('Failed to get JWT secret:', error);
       throw new Error('Authentication configuration error');

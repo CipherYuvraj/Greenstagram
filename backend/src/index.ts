@@ -7,10 +7,12 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import { connectDB } from "./config/database";
 import { logger } from "./utils/logger";
+import { azureKeyVault } from './config/azure';
 
 // Routes
 import authRoutes from './routes/auth';
 import aiRoutes from './routes/ai';
+import healthRoutes from './routes/health';
 // TODO: Import additional routes as they are implemented
 // import postRoutes from './routes/posts';
 // import userRoutes from './routes/users';
@@ -90,6 +92,7 @@ app.get('/health', (_req, res) => {
 });
 
 // API routes
+app.use('/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 // TODO: Add other route handlers
@@ -129,25 +132,27 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
 });
 
 // Start server function
-const startServer = async (): Promise<void> => {
+const startServer = async () => {
   try {
     // Connect to database
     await connectDB();
     
+    // Test Azure Key Vault connection
+    const keyVaultHealth = await azureKeyVault.healthCheck();
+    logger.info(`🔐 Key Vault Status: ${keyVaultHealth.status}`);
+    if (keyVaultHealth.error) {
+      logger.warn(`🔐 Key Vault Error: ${keyVaultHealth.error}`);
+    }
+    
     // Start the server
     app.listen(PORT, () => {
-      logger.info(`🚀 Server is running on port ${PORT}`);
-      logger.info(`📍 API URL: http://localhost:${PORT}`);
-      logger.info(`🔐 Key Vault: ${process.env.AZURE_KEY_VAULT_URL ? 'Configured' : 'Not configured'}`);
-      logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      
-      // TODO: Initialize additional services
-      // - Socket.io for real-time features
-      // - Background job processing
-      // - AI services initialization
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📍 API URL: http://localhost:${PORT}`);
+      console.log(`🔐 Key Vault: ${azureKeyVault.isConnected() ? '✅ Connected' : '❌ Not Connected'}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (error) {
-    logger.error("❌ Failed to start server:", error);
+    console.error("❌ Failed to start server:", error);
     process.exit(1);
   }
 };
