@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', async (_req, res) => {
   try {
     const keyVaultHealth = await azureKeyVault.healthCheck();
     
