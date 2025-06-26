@@ -1,4 +1,8 @@
-import dotenv from "dotenv";
+// Load environment first
+import { loadEnvironment } from './config/env'; // Should be './config/env.js' in compiled JS
+loadEnvironment();
+
+// Now import other modules
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -7,7 +11,7 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import { connectDB } from "./config/database";
 import { logger } from "./utils/logger";
-import { azureKeyVault } from './config/azure';
+import { azureKeyVault } from './config/azure'; // Should be './config/azure.js' in compiled JS
 
 // Routes
 import authRoutes from './routes/auth';
@@ -17,9 +21,6 @@ import healthRoutes from './routes/health';
 // import postRoutes from './routes/posts';
 // import userRoutes from './routes/users';
 // import challengeRoutes from './routes/challenges';
-
-// Load environment variables first
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

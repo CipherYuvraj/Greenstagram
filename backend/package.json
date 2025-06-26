@@ -5,14 +5,19 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx src/index.ts",
+    "dev:watch": "tsx watch src/index.ts",
     "build": "tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
     "test": "echo \"No tests specified\" && exit 0",
-    "lint": "echo \"No linting specified\" && exit 0"
+    "lint": "echo \"No linting specified\" && exit 0",
+    "env:check": "node debug-env.js",
+    "azure:test": "node test-azure-auth.js"
   },
   "dependencies": {
     "@azure/identity": "^3.4.2",
-    "@azure/keyvault-secrets": "^4.7.0",
+    "@azure/keyvault-secrets": "^4.10.0",
     "applicationinsights": "^3.7.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",

@@ -49,7 +49,7 @@
     "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
 
     /* Type Checking */
-    "strict": false,                                     /* Disable strict type-checking to reduce errors (changed to false). */
+    "strict": true,                                     /* Disable strict type-checking to reduce errors (changed to false). */
     "noImplicitAny": true,                               /* Enable error reporting for expressions and declarations with an implied 'any' type. */
     "strictNullChecks": true,                            /* When type checking, take into account 'null' and 'undefined'. */
     "strictFunctionTypes": true,                         /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
