@@ -1,6 +1,5 @@
 import { SecretClient } from '@azure/keyvault-secrets';
 import { DefaultAzureCredential, AzureCliCredential } from '@azure/identity';
-import { logger } from '../utils/logger';
 
 export class AzureKeyVault {
   private client: SecretClient | null = null;
@@ -55,16 +54,8 @@ export class AzureKeyVault {
         console.log('✅ Azure CLI authentication successful');
       } catch (cliError) {
         console.log('⚠️ Azure CLI authentication failed, trying DefaultAzureCredential...');
-        console.log('CLI Error:', cliError.message);
-        credential = new DefaultAzureCredential({
-          excludeEnvironmentCredential: true,
-          excludeWorkloadIdentityCredential: true,
-          excludeManagedIdentityCredential: true,
-          excludeSharedTokenCacheCredential: true,
-          excludeVisualStudioCodeCredential: true,
-          excludeAzurePowerShellCredential: true,
-          excludeAzureDeveloperCliCredential: true
-        });
+        console.log('CLI Error:', cliError instanceof Error ? cliError.message : String(cliError));
+        credential = new DefaultAzureCredential();
       }
 
       this.client = new SecretClient(keyVaultUrl, credential);
