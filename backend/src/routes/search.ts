@@ -1,16 +1,14 @@
 import express from 'express';
 import Post from '@/models/Post';
-import User from '@/models/User';
-import Challenge from '@/models/Challenge';
-import { optionalAuth } from '@/middleware/auth';
-import { AuthRequest, SearchFilters } from '@/types';
+import {User} from '@/models/User';
+import {Challenge} from '@/models/Challenge';
 import { cacheGet, cacheSet } from '@/config/redis';
 import logger from '@/utils/logger';
 
 const router = express.Router();
 
-// Search endpoint with filters
-router.get('/', optionalAuth, async (req: AuthRequest, res) => {
+// Search endpoint with filters - public route
+router.get('/', async (req: express.Request, res: express.Response) => {
   try {
     const {
       query,
@@ -29,7 +27,7 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
     }
 
     const searchQuery = query.trim();
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
     const searchResults: any = {};
 
     // Cache key for search results
@@ -65,7 +63,7 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
       const posts = await Post.find(postQuery)
         .sort(postSort)
         .skip(skip)
-        .limit(parseInt(limit))
+        .limit(parseInt(limit as string))
         .populate('userId', 'username profilePicture isVerified')
         .populate('challenge', 'title category')
         .select('-comments');
@@ -81,7 +79,7 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
       })
         .sort({ score: { $meta: 'textScore' }, followers: -1 })
         .skip(skip)
-        .limit(parseInt(limit))
+        .limit(parseInt(limit as string))
         .select('username profilePicture bio followers ecoLevel isVerified');
 
       searchResults.users = users;
@@ -101,7 +99,7 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
       const challenges = await Challenge.find(challengeQuery)
         .sort({ score: { $meta: 'textScore' }, participants: -1 })
         .skip(skip)
-        .limit(parseInt(limit))
+        .limit(parseInt(limit as string))
         .populate('createdBy', 'username profilePicture')
         .select('-submissions -leaderboard');
 
@@ -136,7 +134,7 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
           $sort: { count: -1, recentPost: -1 }
         },
         {
-          $limit: parseInt(limit)
+          $limit: parseInt(limit as string)
         },
         {
           $project: {
@@ -154,21 +152,21 @@ router.get('/', optionalAuth, async (req: AuthRequest, res) => {
     // Cache results for 5 minutes
     await cacheSet(cacheKey, searchResults, 300);
 
-    res.json({
+    return res.json({
       success: true,
       data: searchResults
     });
   } catch (error) {
     logger.error('Search error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Search service error'
     });
   }
 });
 
-// Search suggestions endpoint
-router.get('/suggestions', optionalAuth, async (req: AuthRequest, res) => {
+// Search suggestions endpoint - public route
+router.get('/suggestions', async (req: express.Request, res: express.Response) => {
   try {
     const { q } = req.query as { q: string };
 
@@ -249,21 +247,21 @@ router.get('/suggestions', optionalAuth, async (req: AuthRequest, res) => {
     // Cache for 10 minutes
     await cacheSet(cacheKey, uniqueSuggestions, 600);
 
-    res.json({
+    return res.json({
       success: true,
       data: { suggestions: uniqueSuggestions }
     });
   } catch (error) {
     logger.error('Search suggestions error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Suggestions service error'
     });
   }
 });
 
-// Trending hashtags endpoint
-router.get('/trending', optionalAuth, async (req: AuthRequest, res) => {
+// Trending hashtags endpoint - public route
+router.get('/trending', async (_req: express.Request, res: express.Response) => {
   try {
     const cacheKey = 'trending:hashtags';
     const cachedTrending = await cacheGet(cacheKey);
@@ -322,13 +320,13 @@ router.get('/trending', optionalAuth, async (req: AuthRequest, res) => {
     // Cache for 30 minutes
     await cacheSet(cacheKey, trendingHashtags, 1800);
 
-    res.json({
+    return res.json({
       success: true,
       data: { hashtags: trendingHashtags }
     });
   } catch (error) {
     logger.error('Trending hashtags error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Trending service error'
     });

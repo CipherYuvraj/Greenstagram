@@ -5,7 +5,6 @@ import Post from '@/models/Post';
 import Notification from '@/models/Notification';
 import { authenticate, requireAdmin } from '@/middleware/auth';
 import { validateRequest, createChallengeSchema } from '@/middleware/validation';
-import { AuthRequest } from '@/types';
 import { checkBadges } from '@/utils/badgeTriggers';
 import { io } from '../index';
 import logger from '@/utils/logger';
@@ -62,17 +61,17 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 });
 
 // Create challenge (admin only)
-router.post('/', authenticate, requireAdmin, validateRequest(createChallengeSchema), async (req: AuthRequest, res: express.Response) => {
+router.post('/', authenticate, requireAdmin, validateRequest(createChallengeSchema), async (req: express.Request, res: express.Response) => {
   try {
     const challengeData = {
       ...req.body,
-      createdBy: req.user!._id
+      createdBy: (req as any).user._id
     };
 
     const challenge = new Challenge(challengeData);
     await challenge.save();
 
-    logger.info(`Challenge created: ${challenge.title} by ${req.user!.username}`);
+    logger.info(`Challenge created: ${challenge.title} by ${(req as any).user.username}`);
 
     res.status(201).json({
       success: true,
@@ -103,7 +102,7 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
             });
         }
 
-        const challengeObj = challenge.toObject();
+        const challengeObj: any = challenge.toObject();
         
         // Get recent posts for this challenge
         const recentPosts = await Post.find({
@@ -117,13 +116,13 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 
         challengeObj.recentPosts = recentPosts;
 
-        res.json({
+        return res.json({
             success: true,
             data: { challenge: challengeObj }
         });
     } catch (error) {
         logger.error('Get challenge error:', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: 'Server error fetching challenge'
         });
@@ -131,7 +130,7 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 });
 
 // Get user's challenge status - new authenticated route
-router.get('/:id/status', authenticate, async (req: AuthRequest, res: express.Response) => {
+router.get('/:id/status', authenticate, async (req: express.Request, res: express.Response) => {
     try {
         const challenge = await Challenge.findById(req.params.id);
 
@@ -143,19 +142,19 @@ router.get('/:id/status', authenticate, async (req: AuthRequest, res: express.Re
         }
 
         const isParticipating = challenge.participants.some(
-            participantId => participantId.equals(req.user!._id)
+            participantId => participantId.equals((req as any).user!._id)
         );
 
         // Get user's submissions for this challenge
         const userSubmissions = challenge.submissions.filter(
-            sub => sub.userId.equals(req.user!._id)
+            sub => sub.userId.equals((req as any).user!._id)
         );
 
         // Get user's position in leaderboard if participating
         const leaderboardPosition = isParticipating ? 
-            challenge.leaderboard.findIndex(entry => entry.userId.equals(req.user!._id)) + 1 : null;
+            challenge.leaderboard.findIndex(entry => entry.userId.equals((req as any).user!._id)) + 1 : null;
 
-        res.json({
+        return res.json({
             success: true,
             data: { 
                 isParticipating,
@@ -166,7 +165,7 @@ router.get('/:id/status', authenticate, async (req: AuthRequest, res: express.Re
         });
     } catch (error) {
         logger.error('Get challenge status error:', error);
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: 'Server error fetching challenge status'
         });
@@ -174,7 +173,7 @@ router.get('/:id/status', authenticate, async (req: AuthRequest, res: express.Re
 });
 
 // Join challenge
-router.post('/:id/join', authenticate, async (req: AuthRequest, res: express.Response) => {
+router.post('/:id/join', authenticate, async (req: express.Request, res: express.Response) => {
   try {
     const challenge = await Challenge.findById(req.params.id);
     
@@ -192,7 +191,7 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: express.Res
       });
     }
 
-    if (challenge.participants.includes(req.user!._id)) {
+    if (challenge.participants.includes((req as any).user!._id)) {
       return res.status(400).json({
         success: false,
         message: 'Already participating in this challenge'
@@ -207,17 +206,17 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: express.Res
       });
     }
 
-    challenge.participants.push(req.user!._id);
+    challenge.participants.push((req as any).user!._id);
     await challenge.save();
 
     // Award points for joining
-    await User.findByIdAndUpdate(req.user!._id, {
+    await User.findByIdAndUpdate((req as any).user!._id, {
       $inc: { ecoPoints: 10 }
     });
 
     // Create notification
     const notification = new Notification({
-      userId: req.user!._id,
+      userId:(req as any).user!._id,
       type: 'challenge',
       title: 'Challenge Joined',
       message: `You joined the challenge: ${challenge.title}`,
@@ -226,16 +225,16 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: express.Res
     await notification.save();
 
     // Check for badges
-    await checkBadges(req.user!._id.toString());
+    await checkBadges((req as any).user!._id.toString());
 
     // Emit real-time update
     io.emit(`challenge:${challenge._id}:update`, {
       participantCount: challenge.participants.length
     });
 
-    logger.info(`User ${req.user!.username} joined challenge: ${challenge.title}`);
+    logger.info(`User ${(req as any).user!.username} joined challenge: ${challenge.title}`);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Successfully joined challenge',
       data: {
@@ -244,7 +243,7 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: express.Res
     });
   } catch (error) {
     logger.error('Join challenge error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error joining challenge'
     });
@@ -252,7 +251,7 @@ router.post('/:id/join', authenticate, async (req: AuthRequest, res: express.Res
 });
 
 // Leave challenge
-router.post('/:id/leave', authenticate, async (req: AuthRequest, res: express.Response) => {
+router.post('/:id/leave', authenticate, async (req: express.Request, res: express.Response) => {
   try {
     const challenge = await Challenge.findById(req.params.id);
     
@@ -263,7 +262,7 @@ router.post('/:id/leave', authenticate, async (req: AuthRequest, res: express.Re
       });
     }
 
-    if (!challenge.participants.includes(req.user!._id)) {
+    if (!challenge.participants.includes((req as any).user!._id)) {
       return res.status(400).json({
         success: false,
         message: 'Not participating in this challenge'
@@ -271,17 +270,17 @@ router.post('/:id/leave', authenticate, async (req: AuthRequest, res: express.Re
     }
 
     challenge.participants = challenge.participants.filter(
-      (participantId) => !participantId.equals(req.user!._id)
+      (participantId) => !participantId.equals((req as any).user!._id)
     );
     await challenge.save();
 
     // Remove from leaderboard
     challenge.leaderboard = challenge.leaderboard.filter(
-      (entry) => !entry.userId.equals(req.user!._id)
+      (entry) => !entry.userId.equals((req as any).user!._id)
     );
     await challenge.save();
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Successfully left challenge',
       data: {
@@ -290,7 +289,7 @@ router.post('/:id/leave', authenticate, async (req: AuthRequest, res: express.Re
     });
   } catch (error) {
     logger.error('Leave challenge error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error leaving challenge'
     });
@@ -311,17 +310,21 @@ router.get('/:id/leaderboard', async (req: express.Request, res: express.Respons
     }
 
     // Update leaderboard if needed
-    await challenge.updateLeaderboard();
+    // Update leaderboard if needed
+    if (typeof (challenge as any).updateLeaderboard === 'function') {
+      await (challenge as any).updateLeaderboard();
+      await challenge.populate('leaderboard.userId', 'username profilePicture ecoLevel isVerified');
+    }
 
     const leaderboard = challenge.leaderboard.slice(0, 50); // Top 50
 
-    res.json({
+    return res.json({
       success: true,
       data: { leaderboard }
     });
   } catch (error) {
     logger.error('Get leaderboard error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error fetching leaderboard'
     });
@@ -329,7 +332,7 @@ router.get('/:id/leaderboard', async (req: express.Request, res: express.Respons
 });
 
 // Submit challenge post
-router.post('/:id/submit', authenticate, async (req: AuthRequest, res: express.Response) => {
+router.post('/:id/submit', authenticate, async (req: express.Request, res: express.Response) => {
   try {
     const { postId } = req.body;
     
@@ -350,14 +353,14 @@ router.post('/:id/submit', authenticate, async (req: AuthRequest, res: express.R
       });
     }
 
-    if (!post.userId.equals(req.user!._id)) {
+    if (!post.userId.equals((req as any).user!._id)) {
       return res.status(403).json({
         success: false,
         message: 'You can only submit your own posts'
       });
     }
 
-    if (!challenge.participants.includes(req.user!._id)) {
+    if (!challenge.participants.includes((req as any).user!._id)) {
       return res.status(400).json({
         success: false,
         message: 'You must join the challenge first'
@@ -378,7 +381,7 @@ router.post('/:id/submit', authenticate, async (req: AuthRequest, res: express.R
 
     // Add submission
     challenge.submissions.push({
-      userId: req.user!._id,
+      userId: (req as any).user!._id,
       postId: post._id,
       score: calculateSubmissionScore(post),
       verified: false
@@ -391,12 +394,13 @@ router.post('/:id/submit', authenticate, async (req: AuthRequest, res: express.R
     await post.save();
 
     // Award challenge points
-    const pointsEarned = Math.floor(challenge.points * 0.1); // 10% of challenge points
-    await User.findByIdAndUpdate(req.user!._id, {
+    const challengePoints = (challenge as any).points ?? 0;
+    const pointsEarned = Math.floor(challengePoints * 0.1); // 10% of challenge points
+    await User.findByIdAndUpdate((req as any).user!._id, {
       $inc: { ecoPoints: pointsEarned }
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Post submitted successfully',
       data: {
@@ -406,7 +410,7 @@ router.post('/:id/submit', authenticate, async (req: AuthRequest, res: express.R
     });
   } catch (error) {
     logger.error('Submit challenge post error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error submitting post'
     });

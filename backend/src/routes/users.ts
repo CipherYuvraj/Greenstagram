@@ -1,20 +1,95 @@
 import express from 'express';
-import User from '@/models/User';
+import { User } from '@/models/User';
 import Post from '@/models/Post';
 import Notification from '@/models/Notification';
-import { authenticate, optionalAuth } from '@/middleware/auth';
+import { authenticate } from '@/middleware/auth';
 import { validateRequest, updateProfileSchema } from '@/middleware/validation';
-import { AuthRequest } from '@/types';
 import { checkBadges } from '@/utils/badgeTriggers';
 import { io } from '../index';
 import logger from '@/utils/logger';
 
 const router = express.Router();
 
-// Get user profile
-router.get('/:username', optionalAuth, async (req: AuthRequest, res) => {
+// Get user public profile - public route
+router.get('/:username', async (req: express.Request, res: express.Response) => {
   try {
-    const user = await User.findByUsername(req.params.username)
+    const user = await User.findOne({ username: req.params.username })
+      .select('-password -email')
+      .populate('followers', 'username profilePicture')
+      .populate('following', 'username profilePicture');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // For private profiles, return limited data
+    if (user.isPrivate) {
+      return res.json({
+        success: true,
+        data: {
+          user: {
+            _id: user._id,
+            username: user.username,
+            profilePicture: user.profilePicture,
+            bio: user.bio,
+            isPrivate: true,
+            followers: { count: user.followers.length },
+            following: { count: user.following.length }
+          },
+          isPrivate: true
+        }
+      });
+    }
+
+    // For public profiles, return standard data
+    const posts = await Post.find({
+      userId: user._id,
+      visibility: 'public'
+    })
+      .sort({ createdAt: -1 })
+      .limit(12)
+      .populate('challenge', 'title category')
+      .select('media content likes createdAt hashtags');
+
+    // Calculate stats
+    const totalLikes = posts.reduce((sum, post) => sum + post.likes.length, 0);
+    const postCount = posts.length;
+
+    const userProfile = {
+      ...user.toObject(),
+      stats: {
+        posts: postCount,
+        followers: user.followers.length,
+        following: user.following.length,
+        totalLikes,
+        ecoLevel: user.ecoLevel,
+        ecoPoints: user.ecoPoints,
+        currentStreak: user.currentStreak,
+        longestStreak: user.streaks.longest || 0
+      },
+      recentPosts: posts
+    };
+
+    return res.json({
+      success: true,
+      data: { user: userProfile }
+    });
+  } catch (error) {
+    logger.error('Get user profile error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error fetching user profile'
+    });
+  }
+});
+
+// Get user profile with authentication status (for authenticated users)
+router.get('/:username/auth-view', authenticate, async (req: express.Request, res: express.Response) => {
+  try {
+    const user = await User.findOne({ username: req.params.username })
       .select('-password -email')
       .populate('followers', 'username profilePicture')
       .populate('following', 'username profilePicture');
@@ -27,9 +102,10 @@ router.get('/:username', optionalAuth, async (req: AuthRequest, res) => {
     }
 
     // Check if profile is private and user is not following
-    if (user.isPrivate && req.user) {
-      const isFollowing = user.followers.some(follower => follower._id.equals(req.user!._id));
-      const isOwner = user._id.equals(req.user._id);
+    if (user.isPrivate) {
+      const currentUserId = (req as any).user._id;
+      const isFollowing = user.followers.some(follower => follower._id.equals(currentUserId));
+      const isOwner = user._id.equals(currentUserId);
       
       if (!isFollowing && !isOwner) {
         return res.json({
@@ -74,20 +150,20 @@ router.get('/:username', optionalAuth, async (req: AuthRequest, res) => {
         ecoLevel: user.ecoLevel,
         ecoPoints: user.ecoPoints,
         currentStreak: user.currentStreak,
-        longestStreak: user.longestStreak
+        longestStreak: user.streaks.longest
       },
       recentPosts: posts,
-      isFollowing: req.user ? user.followers.some(follower => follower._id.equals(req.user!._id)) : false,
-      isOwner: req.user ? user._id.equals(req.user._id) : false
+      isFollowing: user.followers.some(follower => follower._id.equals((req as any).user._id)),
+      isOwner: user._id.equals((req as any).user._id)
     };
 
-    res.json({
+    return res.json({
       success: true,
       data: { user: userProfile }
     });
   } catch (error) {
-    logger.error('Get user profile error:', error);
-    res.status(500).json({
+    logger.error('Get user authenticated profile error:', error);
+    return res.status(500).json({
       success: false,
       message: 'Server error fetching user profile'
     });
@@ -95,12 +171,12 @@ router.get('/:username', optionalAuth, async (req: AuthRequest, res) => {
 });
 
 // Update profile
-router.put('/profile', authenticate, validateRequest(updateProfileSchema), async (req: AuthRequest, res) => {
+router.put('/profile', authenticate, validateRequest(updateProfileSchema), async (req: express.Request, res: express.Response) => {
   try {
     const updateData = req.body;
     
     const user = await User.findByIdAndUpdate(
-      req.user!._id,
+      (req as any).user._id,
       updateData,
       { new: true, runValidators: true }
     ).select('-password');
@@ -114,14 +190,14 @@ router.put('/profile', authenticate, validateRequest(updateProfileSchema), async
 
     logger.info(`Profile updated by user: ${user.username}`);
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Profile updated successfully',
       data: { user }
     });
   } catch (error) {
     logger.error('Update profile error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error updating profile'
     });
@@ -129,10 +205,10 @@ router.put('/profile', authenticate, validateRequest(updateProfileSchema), async
 });
 
 // Follow/unfollow user
-router.post('/:id/follow', authenticate, async (req: AuthRequest, res) => {
+router.post('/:id/follow', authenticate, async (req: express.Request, res: express.Response) => {
   try {
     const targetUserId = req.params.id;
-    const currentUserId = req.user!._id;
+    const currentUserId = (req as any).user._id;
 
     if (targetUserId === currentUserId.toString()) {
       return res.status(400).json({
@@ -160,7 +236,7 @@ router.post('/:id/follow', authenticate, async (req: AuthRequest, res) => {
       await currentUser!.save();
       await targetUser.save();
 
-      res.json({
+      return res.json({
         success: true,
         message: 'User unfollowed successfully',
         data: { 
@@ -192,7 +268,7 @@ router.post('/:id/follow', authenticate, async (req: AuthRequest, res) => {
       // Check for follower badges
       await checkBadges(targetUserId);
 
-      res.json({
+      return res.json({
         success: true,
         message: 'User followed successfully',
         data: { 
@@ -203,21 +279,29 @@ router.post('/:id/follow', authenticate, async (req: AuthRequest, res) => {
     }
   } catch (error) {
     logger.error('Follow/unfollow error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });
   }
 });
 
-// Get user's posts
-router.get('/:username/posts', optionalAuth, async (req: AuthRequest, res) => {
+// Get user's public posts - public route
+router.get('/:username/posts', async (req: express.Request, res: express.Response) => {
   try {
-    const user = await User.findByUsername(req.params.username);
+    const user = await User.findOne({ username: req.params.username });
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
+      });
+    }
+
+    // If profile is private, don't return posts
+    if (user.isPrivate) {
+      return res.status(403).json({
+        success: false,
+        message: 'This profile is private'
       });
     }
 
@@ -227,7 +311,7 @@ router.get('/:username/posts', optionalAuth, async (req: AuthRequest, res) => {
 
     const posts = await Post.find({
       userId: user._id,
-      visibility: { $in: ['public', 'friends'] }
+      visibility: 'public'
     })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -235,7 +319,7 @@ router.get('/:username/posts', optionalAuth, async (req: AuthRequest, res) => {
       .populate('userId', 'username profilePicture')
       .populate('challenge', 'title category');
 
-    res.json({
+    return res.json({
       success: true,
       data: { posts },
       pagination: {
@@ -244,7 +328,64 @@ router.get('/:username/posts', optionalAuth, async (req: AuthRequest, res) => {
     });
   } catch (error) {
     logger.error('Get user posts error:', error);
-    res.status(500).json({
+    return res.status(500).json({
+      success: false,
+      message: 'Server error fetching posts'
+    });
+  }
+});
+
+// Get user's posts (including friends-only posts) - authenticated route
+router.get('/:username/auth-posts', authenticate, async (req: express.Request, res: express.Response) => {
+  try {
+    const user = await User.findOne({ username: req.params.username });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if requesting user can see friends posts
+    const currentUserId = (req as any).user._id;
+    const isFollowing = user.followers.some(id => id.equals(currentUserId));
+    const isOwner = user._id.equals(currentUserId);
+    
+    // If private and not following and not owner, return error
+    if (user.isPrivate && !isFollowing && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: 'This profile is private'
+      });
+    }
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 12;
+    const skip = (page - 1) * limit;
+
+    // If owner or follower, include friends posts
+    const visibilityOptions = isOwner || isFollowing ? ['public', 'friends'] : ['public'];
+
+    const posts = await Post.find({
+      userId: user._id,
+      visibility: { $in: visibilityOptions }
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('userId', 'username profilePicture')
+      .populate('challenge', 'title category');
+
+    return res.json({
+      success: true,
+      data: { posts },
+      pagination: {
+        hasMore: posts.length === limit
+      }
+    });
+  } catch (error) {
+    logger.error('Get user authenticated posts error:', error);
+    return res.status(500).json({
       success: false,
       message: 'Server error fetching posts'
     });
@@ -252,14 +393,14 @@ router.get('/:username/posts', optionalAuth, async (req: AuthRequest, res) => {
 });
 
 // Get suggested users
-router.get('/suggestions/for-you', authenticate, async (req: AuthRequest, res) => {
+router.get('/suggestions/for-you', authenticate, async (req: express.Request, res: express.Response) => {
   try {
-    const currentUser = await User.findById(req.user!._id);
+    const currentUser = await User.findById((req as any).user._id);
     const following = currentUser!.following;
 
     // Find users with similar interests
     const suggestions = await User.find({
-      _id: { $nin: [...following, req.user!._id] },
+      _id: { $nin: [...following, (req as any).user._id] },
       interests: { $in: currentUser!.interests },
       isPrivate: false
     })
@@ -267,13 +408,13 @@ router.get('/suggestions/for-you', authenticate, async (req: AuthRequest, res) =
       .select('username profilePicture bio interests followers ecoLevel')
       .sort({ followers: -1, ecoLevel: -1 });
 
-    res.json({
+    return res.json({
       success: true,
       data: { suggestions }
     });
   } catch (error) {
     logger.error('Get suggestions error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error fetching suggestions'
     });

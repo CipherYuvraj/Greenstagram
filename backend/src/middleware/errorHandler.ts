@@ -11,10 +11,8 @@ interface CustomError extends Error {
 
 export const errorHandler = (
   err: CustomError,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+  _req: any,
+  res: Response) => {
   let error = { ...err };
   error.message = err.message;
 
@@ -57,7 +55,7 @@ export const errorHandler = (
   });
 };
 
-export const notFound = (req: Request, res: Response, next: NextFunction) => {
+export const notFound = (req: Request, res: Response, _next: NextFunction) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.originalUrl} not found`

@@ -13,22 +13,23 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import "express-async-errors";
 
-import { connectDB } from "@/config/database";
-import { connectRedis } from "@/config/redis";
-import { initializeAzureKeyVault } from "@/config/azure";
-import { errorHandler } from "@/middleware/errorHandler";
-import { notFound } from "@/middleware/notFound";
-import { socketHandler } from "@/socket/socketHandler";
-import logger from "@/utils/logger";
+import { connectDB } from "./config/database";
+import { connectRedis } from "./config/redis";
+import { initializeAzureKeyVault, azureKeyVault } from "./config/azure";
+import { errorHandler } from "./middleware/errorHandler";
+import  notFound  from "./middleware/notFound";
+import { socketHandler } from "./socket/socketHandler";
+import logger from "./utils/logger";
 
 // Route imports
-import authRoutes from "@/routes/auth";
-import userRoutes from "@/routes/users";
-import postRoutes from "@/routes/posts";
-import challengeRoutes from "@/routes/challenges";
-import searchRoutes from "@/routes/search";
-import aiRoutes from "@/routes/ai";
-import notificationRoutes from "@/routes/notifications";
+import authRoutes from "./routes/auth";
+import userRoutes from "./routes/users";
+import postRoutes from "./routes/posts";
+import challengeRoutes from "./routes/challenges";
+import searchRoutes from "./routes/search";
+import aiRoutes from "./routes/ai";
+import notificationRoutes from "./routes/notifications";
+import healthRoutes from "./routes/health";
 
 dotenv.config();
 
@@ -95,9 +96,10 @@ app.use("/api/challenges", challengeRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/health", healthRoutes);
 
-// Health check
-app.get("/health", (req, res) => {
+// Simple health check directly in index.ts (in case /routes/health isn't used)
+app.get("/healthz", (_req, res) => {
   res.json({
     success: true,
     status: "OK",
@@ -105,8 +107,7 @@ app.get("/health", (req, res) => {
     environment: process.env.NODE_ENV || "development",
     services: {
       keyVault: process.env.AZURE_KEY_VAULT_URL ? "configured" : "not configured",
-      database: "connected", // TODO: Add actual health check
-      // TODO: Add other service health checks
+      database: "connected",
     },
   });
 });

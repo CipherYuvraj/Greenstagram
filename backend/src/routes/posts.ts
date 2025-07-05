@@ -1,9 +1,9 @@
 import express from 'express';
 import Post from '@/models/Post';
-import User from '@/models/User';
-import Challenge from '@/models/Challenge';
+import { User }from '@/models/User';
+import {Challenge} from '@/models/Challenge';
 import Notification from '@/models/Notification';
-import { authenticate, optionalAuth } from '@/middleware/auth';
+import { authenticate} from '@/middleware/auth';
 import { validateRequest, createPostSchema } from '@/middleware/validation';
 import { AuthRequest } from '@/types';
 import { checkBadges } from '@/utils/badgeTriggers';
@@ -13,30 +13,30 @@ import logger from '@/utils/logger';
 const router = express.Router();
 
 // Create post
-router.post('/', authenticate, validateRequest(createPostSchema), async (req: AuthRequest, res) => {
+router.post('/', authenticate, validateRequest(createPostSchema), async (req: express.Request, res: express.Response) => {
   try {
+    const authReq = req as unknown as AuthRequest;
     const postData = {
-      ...req.body,
-      userId: req.user!._id
+      ...authReq.body,
+      userId: authReq.user!._id
     };
 
     const post = new Post(postData);
     await post.save();
-
     // Award points for posting
-    await User.findByIdAndUpdate(req.user!._id, { 
+    await User.findByIdAndUpdate(authReq.user!._id, { 
       $inc: { ecoPoints: 10 } 
     });
 
     // Check for new badges
-    await checkBadges(req.user!._id.toString());
+    await checkBadges(authReq.user!._id.toString());
 
     // If post is for a challenge, add submission
-    if (req.body.challenge) {
-      const challenge = await Challenge.findById(req.body.challenge);
+    if (authReq.body && (authReq.body as any).challenge) {
+      const challenge = await Challenge.findById((authReq.body as any).challenge);
       if (challenge && challenge.isActive) {
         challenge.submissions.push({
-          userId: req.user!._id,
+          userId: authReq.user!._id,
           postId: post._id,
           score: 10,
           verified: false
@@ -52,8 +52,7 @@ router.post('/', authenticate, validateRequest(createPostSchema), async (req: Au
 
     // Emit real-time update
     io.emit('post:created', populatedPost);
-
-    logger.info(`Post created by user: ${req.user!.username}`);
+    logger.info(`Post created by user: ${authReq.user!.username}`);
 
     res.status(201).json({
       success: true,
@@ -70,15 +69,15 @@ router.post('/', authenticate, validateRequest(createPostSchema), async (req: Au
 });
 
 // Get feed posts
-router.get('/feed', authenticate, async (req: AuthRequest, res) => {
+router.get('/feed', authenticate, async (req: express.Request, res: express.Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const skip = (page - 1) * limit;
 
     // Get posts from followed users and own posts
-    const followingIds = req.user!.following;
-    const userIds = [req.user!._id, ...followingIds];
+    const followingIds = (req as any).user!.following;
+    const userIds = [(req as any).user!._id, ...followingIds];
 
     const posts = await Post.find({
       userId: { $in: userIds },
@@ -111,78 +110,78 @@ router.get('/feed', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Get trending posts
-router.get('/trending', optionalAuth, async (req: AuthRequest, res) => {
-  try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-    const skip = (page - 1) * limit;
+router.get('/trending', async (req: express.Request, res: express.Response) => {
+    try {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const skip = (page - 1) * limit;
 
-    // Get posts from last 7 days with high engagement
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        // Get posts from last 7 days with high engagement
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const posts = await Post.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: weekAgo },
-          visibility: 'public'
-        }
-      },
-      {
-        $addFields: {
-          likesCount: { $size: '$likes' },
-          commentsCount: { $size: '$comments' },
-          engagementScore: {
-            $add: [
-              { $size: '$likes' },
-              { $multiply: [{ $size: '$comments' }, 2] },
-              { $multiply: ['$shares', 3] }
-            ]
-          }
-        }
-      },
-      {
-        $sort: { engagementScore: -1, createdAt: -1 }
-      },
-      {
-        $skip: skip
-      },
-      {
-        $limit: limit
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'userId',
-          pipeline: [
-            { $project: { username: 1, profilePicture: 1, isVerified: 1 } }
-          ]
-        }
-      },
-      {
-        $unwind: '$userId'
-      }
-    ]);
+        const posts = await Post.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: weekAgo },
+                    visibility: 'public'
+                }
+            },
+            {
+                $addFields: {
+                    likesCount: { $size: '$likes' },
+                    commentsCount: { $size: '$comments' },
+                    engagementScore: {
+                        $add: [
+                            { $size: '$likes' },
+                            { $multiply: [{ $size: '$comments' }, 2] },
+                            { $multiply: ['$shares', 3] }
+                        ]
+                    }
+                }
+            },
+            {
+                $sort: { engagementScore: -1, createdAt: -1 }
+            },
+            {
+                $skip: skip
+            },
+            {
+                $limit: limit
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'userId',
+                    pipeline: [
+                        { $project: { username: 1, profilePicture: 1, isVerified: 1 } }
+                    ]
+                }
+            },
+            {
+                $unwind: '$userId'
+            }
+        ]);
 
-    res.json({
-      success: true,
-      data: { posts },
-      pagination: {
-        hasMore: posts.length === limit
-      }
-    });
-  } catch (error) {
-    logger.error('Get trending posts error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error fetching trending posts'
-    });
-  }
+        res.json({
+            success: true,
+            data: { posts },
+            pagination: {
+                hasMore: posts.length === limit
+            }
+        });
+    } catch (error) {
+        logger.error('Get trending posts error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error fetching trending posts'
+        });
+    }
 });
 
 // Like/unlike post
-router.post('/:id/like', authenticate, async (req: AuthRequest, res) => {
+router.post('/:id/like', authenticate, async (req: express.Request, res: express.Response) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) {
@@ -192,7 +191,7 @@ router.post('/:id/like', authenticate, async (req: AuthRequest, res) => {
       });
     }
 
-    const userId = req.user!._id;
+    const userId = (req as any).user!._id;
     const isLiked = post.likes.includes(userId);
 
     if (isLiked) {
@@ -211,7 +210,7 @@ router.post('/:id/like', authenticate, async (req: AuthRequest, res) => {
           userId: post.userId,
           type: 'like',
           title: 'New Like',
-          message: `${req.user!.username} liked your post`,
+          message: `${(req as any).user!.username} liked your post`,
           data: { postId: post._id, userId }
         });
         await notification.save();
@@ -223,7 +222,7 @@ router.post('/:id/like', authenticate, async (req: AuthRequest, res) => {
 
     await post.save();
 
-    res.json({
+    return res.json({
       success: true,
       data: { 
         liked: !isLiked,
@@ -232,7 +231,7 @@ router.post('/:id/like', authenticate, async (req: AuthRequest, res) => {
     });
   } catch (error) {
     logger.error('Like/unlike post error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });
@@ -240,7 +239,7 @@ router.post('/:id/like', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Add comment
-router.post('/:id/comment', authenticate, async (req: AuthRequest, res) => {
+router.post('/:id/comment', authenticate, async (req: express.Request, res: express.Response) => {
   try {
     const { content } = req.body;
     
@@ -260,7 +259,7 @@ router.post('/:id/comment', authenticate, async (req: AuthRequest, res) => {
     }
 
     const comment = {
-      userId: req.user!._id,
+      userId: (req as any).user!._id,
       content: content.trim(),
       likes: [],
       replies: []
@@ -270,18 +269,18 @@ router.post('/:id/comment', authenticate, async (req: AuthRequest, res) => {
     await post.save();
 
     // Award points for commenting
-    await User.findByIdAndUpdate(req.user!._id, { 
+    await User.findByIdAndUpdate((req as any).user!._id, { 
       $inc: { ecoPoints: 5 } 
     });
 
     // Create notification for post owner
-    if (!post.userId.equals(req.user!._id)) {
+    if (!post.userId.equals((req as any).user!._id)) {
       const notification = new Notification({
         userId: post.userId,
         type: 'comment',
         title: 'New Comment',
-        message: `${req.user!.username} commented on your post`,
-        data: { postId: post._id, userId: req.user!._id }
+        message: `${(req as any).user!.username} commented on your post`,
+        data: { postId: post._id, userId: (req as any).user!._id }
       });
       await notification.save();
 
@@ -295,14 +294,14 @@ router.post('/:id/comment', authenticate, async (req: AuthRequest, res) => {
 
     const newComment = updatedPost!.comments[updatedPost!.comments.length - 1];
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Comment added successfully',
       data: { comment: newComment }
     });
   } catch (error) {
     logger.error('Add comment error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error adding comment'
     });
@@ -310,40 +309,40 @@ router.post('/:id/comment', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Get single post
-router.get('/:id', optionalAuth, async (req: AuthRequest, res) => {
-  try {
-    const post = await Post.findById(req.params.id)
-      .populate('userId', 'username profilePicture isVerified')
-      .populate('challenge', 'title points category')
-      .populate('comments.userId', 'username profilePicture')
-      .populate('mentions', 'username');
+router.get('/:id', async (req: express.Request, res: express.Response) => {
+    try {
+        const post = await Post.findById(req.params.id)
+            .populate('userId', 'username profilePicture isVerified')
+            .populate('challenge', 'title points category')
+            .populate('comments.userId', 'username profilePicture')
+            .populate('mentions', 'username');
 
-    if (!post) {
-      return res.status(404).json({
-        success: false,
-        message: 'Post not found'
-      });
+        if (!post) {
+            return res.status(404).json({
+                success: false,
+                message: 'Post not found'
+            });
+        }
+
+        // Only show public posts when not authenticated
+        if (post.visibility !== 'public') {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied'
+            });
+        }
+
+        return res.json({
+            success: true,
+            data: { post }
+        });
+    } catch (error) {
+        logger.error('Get post error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error fetching post'
+        });
     }
-
-    // Check visibility permissions
-    if (post.visibility === 'private' && (!req.user || !post.userId._id.equals(req.user._id))) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: { post }
-    });
-  } catch (error) {
-    logger.error('Get post error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error fetching post'
-    });
-  }
 });
 
 export default router;
