@@ -11,8 +11,7 @@ import {
   Leaf
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Post, User } from '@/types';
-import AnimatedButton from '@/components/ui/AnimatedButton';
+import { Post, User } from '../../types';
 
 interface PostCardProps {
   post: Post;
@@ -27,12 +26,11 @@ const PostCard: React.FC<PostCardProps> = ({
   post,
   currentUser,
   onLike,
-  onComment,
   onShare,
   className = ''
 }) => {
   const [isLiked, setIsLiked] = useState(
-    currentUser ? post.likes.some(like => like._id === currentUser._id) : false
+    currentUser ? post.likes.some((like: { _id: any; }) => like._id === currentUser._id) : false
   );
   const [showComments, setShowComments] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -178,9 +176,9 @@ const PostCard: React.FC<PostCardProps> = ({
             transition={{ delay: 0.5 }}
             className="flex flex-wrap gap-1 mt-2"
           >
-            {post.hashtags.map((hashtag, index) => (
+            {post.hashtags.map((hashtag: string, index: number) => (
               <motion.span
-                key={hashtag}
+                key={`${hashtag}-${index}`}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5 + index * 0.1 }}

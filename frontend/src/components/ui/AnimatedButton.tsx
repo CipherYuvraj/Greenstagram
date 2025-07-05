@@ -2,19 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 
-interface AnimatedButtonProps {
-  children: React.ReactNode;
-  onClick?: () => void;
-  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'eco';
-  size?: 'sm' | 'md' | 'lg';
-  icon?: LucideIcon;
-  loading?: boolean;
-  disabled?: boolean;
-  className?: string;
-  particleEffect?: boolean;
-  glowEffect?: boolean;
-}
-
+// Define the Particle interface
 interface Particle {
   id: number;
   x: number;
@@ -27,17 +15,37 @@ interface Particle {
   color: string;
 }
 
+interface AnimatedButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  variant?: 'primary' | 'secondary' | 'eco' | 'danger' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+  disabled?: boolean;
+  loading?: boolean;
+  icon?: LucideIcon;
+  iconPosition?: 'left' | 'right';
+  type?: 'button' | 'submit' | 'reset';
+  fullWidth?: boolean;
+  rounded?: boolean;
+  glowEffect?: boolean;
+  particleEffect?: boolean;
+}
+
 const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   children,
   onClick,
   variant = 'primary',
   size = 'md',
-  icon: Icon,
-  loading = false,
-  disabled = false,
   className = '',
-  particleEffect = true,
-  glowEffect = true
+  disabled = false,
+  loading = false,
+  icon: Icon,
+  iconPosition = 'left',
+  type = 'button',
+  rounded = false,
+  glowEffect = false,
+  particleEffect = false
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
@@ -58,11 +66,11 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
       glow: 'shadow-secondary-500/25',
       particle: '#22c55e'
     },
-    success: {
-      bg: 'bg-gradient-to-r from-green-500 to-green-600',
-      hover: 'hover:from-green-600 hover:to-green-700',
-      glow: 'shadow-green-500/25',
-      particle: '#10b981'
+    eco: {
+      bg: 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500',
+      hover: 'hover:from-emerald-600 hover:via-green-600 hover:to-teal-600',
+      glow: 'shadow-emerald-500/25',
+      particle: '#059669'
     },
     danger: {
       bg: 'bg-gradient-to-r from-red-500 to-red-600',
@@ -70,18 +78,25 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
       glow: 'shadow-red-500/25',
       particle: '#ef4444'
     },
-    eco: {
-      bg: 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500',
-      hover: 'hover:from-emerald-600 hover:via-green-600 hover:to-teal-600',
-      glow: 'shadow-emerald-500/25',
-      particle: '#059669'
+    outline: {
+      bg: 'bg-transparent',
+      hover: 'hover:bg-gray-100',
+      glow: 'shadow-none',
+      particle: 'transparent'
+    },
+    ghost: {
+      bg: 'bg-transparent',
+      hover: 'hover:bg-gray-100',
+      glow: 'shadow-none',
+      particle: 'transparent'
     }
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg'
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-5 py-2.5 text-base',
+    xl: 'px-6 py-3 text-lg'
   };
 
   const createParticles = (x: number, y: number) => {
@@ -156,7 +171,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     <motion.button
       ref={buttonRef}
       className={`
-        relative overflow-hidden rounded-lg font-medium text-white
+        relative flex items-center justify-center overflow-hidden rounded-lg font-medium
         transition-all duration-300 transform-gpu
         ${variants[variant].bg}
         ${variants[variant].hover}
@@ -171,82 +186,71 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
       disabled={disabled || loading}
+      type={type}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
     >
       {/* Glow effect */}
-      {glowEffect && (
+      {glowEffect && !disabled && !loading && (
         <motion.div
-          className="absolute inset-0 rounded-lg opacity-30"
-          style={{
-            background: `radial-gradient(circle at center, ${variants[variant].particle}40, transparent 70%)`
-          }}
+          className={`absolute inset-0 ${rounded ? 'rounded-full' : 'rounded-lg'} bg-white opacity-0`}
           animate={{
-            scale: isHovered ? 1.2 : 1,
-            opacity: isHovered ? 0.6 : 0.3
+            opacity: [0, 0.2, 0],
+            scale: [1, 1.05, 1]
           }}
-          transition={{ duration: 0.3 }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            repeatType: 'reverse'
+          }}
         />
       )}
-      
-      {/* Shimmer effect */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
-        initial={{ x: '-100%' }}
-        animate={{ x: isHovered ? '200%' : '-100%' }}
-        transition={{ duration: 0.8, ease: 'easeInOut' }}
-      />
-      
+
+      {/* Particle effect */}
+      {particleEffect && !disabled && !loading && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(4)].map((_, i) => (
+            <motion.div
+              key={i}
+              className={`absolute w-1.5 h-1.5 rounded-full bg-white`}
+              style={{
+                top: '50%',
+                left: '50%',
+              }}
+              animate={{
+                x: [0, (Math.random() - 0.5) * 60],
+                y: [0, (Math.random() - 0.5) * 60],
+                opacity: [0, 0.7, 0],
+                scale: [0, 1, 0.5]
+              }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                repeatDelay: i * 0.3,
+                ease: "easeOut"
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Content */}
-      <div className="relative z-10 flex items-center justify-center space-x-2">
+      <span className="flex items-center justify-center space-x-2">
         {loading ? (
           <motion.div
-            className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-4 h-4 border-2 border-t-transparent border-white rounded-full"
           />
         ) : (
-          Icon && <Icon className="w-4 h-4" />
+          <>
+            {Icon && iconPosition === 'left' && <Icon className="w-4 h-4 mr-2" />}
+            <span>{children}</span>
+            {Icon && iconPosition === 'right' && <Icon className="w-4 h-4 ml-2" />}
+          </>
         )}
-        <span>{children}</span>
-      </div>
-      
-      {/* Particle effects */}
-      {particleEffect && particles.map(particle => (
-        <motion.div
-          key={particle.id}
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            left: particle.x,
-            top: particle.y,
-            width: particle.size,
-            height: particle.size,
-            backgroundColor: particle.color
-          }}
-          initial={{ opacity: 1, scale: 1 }}
-          animate={{ 
-            opacity: particle.life,
-            scale: particle.life * 0.5 + 0.5,
-            x: particle.vx * 10,
-            y: particle.vy * 10
-          }}
-          transition={{ duration: 0.1, ease: 'linear' }}
-        />
-      ))}
-      
-      {/* Ripple effect */}
-      {isClicked && (
-        <motion.div
-          className="absolute inset-0 rounded-lg"
-          style={{
-            background: `radial-gradient(circle, ${variants[variant].particle}40 0%, transparent 70%)`
-          }}
-          initial={{ scale: 0, opacity: 1 }}
-          animate={{ scale: 2, opacity: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-        />
-      )}
+      </span>
     </motion.button>
   );
 };

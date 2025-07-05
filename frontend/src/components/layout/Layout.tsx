@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Header from './Header';
-import ParticleBackground from '@/components/ui/ParticleBackground';
-import FloatingElements from '@/components/ui/FloatingElements';
+import ParticleBackground from '../ui/ParticleBackground';
+import FloatingElements from '../ui/FloatingElements';
 
 interface LayoutProps {
   children: React.ReactNode;

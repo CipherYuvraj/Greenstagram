@@ -13,9 +13,8 @@ import {
   LogOut,
   Leaf
 } from 'lucide-react';
-import { useAuthStore } from '@/stores/authStore';
-import { useNotificationStore } from '@/stores/notificationStore';
-import AnimatedButton from '@/components/ui/AnimatedButton';
+import { useAuthStore } from '../../store/authStore';
+import { useNotificationStore } from '../../store/notificationStore';
 
 const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,7 +26,7 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   
   const { user, logout } = useAuthStore();
-  const { notifications, unreadCount } = useNotificationStore();
+  const { unreadCount } = useNotificationStore();
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/', active: location.pathname === '/' },

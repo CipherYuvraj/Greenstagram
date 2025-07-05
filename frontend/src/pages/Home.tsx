@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Sparkles, TrendingUp, Users, Award } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
-import PostCard from '@/components/posts/PostCard';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import AnimatedButton from '@/components/ui/AnimatedButton';
-import { useAuthStore } from '@/stores/authStore';
-import { apiClient } from '@/services/api';
-import { Post } from '@/types';
+import Layout from '../components/layout/Layout';
+import PostCard from '../components/posts/PostCard';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import AnimatedButton from '../components/ui/AnimatedButton';
+import { useAuthStore } from '../store/authStore';
+import { apiClient } from '../services/api';
+import { Post } from '../types';
 
 const Home: React.FC = () => {
   const { user } = useAuthStore();
@@ -19,8 +19,8 @@ const Home: React.FC = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    isLoading,
-    error
+    isLoading
+    
   } = useInfiniteQuery({
     queryKey: ['feed', feedType],
     queryFn: async ({ pageParam = 1 }) => {
@@ -153,14 +153,14 @@ const Home: React.FC = () => {
             >
               <div className="flex items-center space-x-2">
                 <Award className="w-5 h-5" />
-                <span className="text-sm">Streak: {user?.currentStreak} days</span>
+                <span className="text-sm">Streak: {user?.streaks.current} days</span>
               </div>
               
               {user?.badges && user.badges.length > 0 && (
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">Latest badge:</span>
                   <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
-                    {user.badges[user.badges.length - 1]?.name}
+                    {user.badges[user.badges.length - 1]}
                   </span>
                 </div>
               )}
@@ -176,7 +176,7 @@ const Home: React.FC = () => {
           className="mb-6"
         >
           <div className="flex space-x-1 bg-white/80 backdrop-blur-sm rounded-xl p-1 border border-gray-200">
-            {feedTabs.map((tab, index) => (
+            {feedTabs.map((tab, _index) => (
               <motion.button
                 key={tab.key}
                 onClick={() => setFeedType(tab.key)}
@@ -233,7 +233,84 @@ const Home: React.FC = () => {
               >
                 <PostCard
                   post={post}
-                  currentUser={user}
+                  currentUser={user ? {
+                    ...user,
+                    // Fix the badge mapping to match the Badge interface
+                    badges: user.badges?.map(badge => {
+                      if (typeof badge === 'string') {
+                        return {
+                          badgeId: badge,
+                          name: badge,
+                          description: `${badge} badge`,
+                          icon: '🏆',
+                          earnedAt: new Date(),
+                          category: 'special' as const
+                        };
+                      }
+                      return badge;
+                    }) || [],
+                    // Fix the followers mapping to match the User interface  
+                    followers: user.followers?.map(follower => {
+                      if (typeof follower === 'string') {
+                        return {
+                          _id: follower,
+                          username: '',
+                          email: '',
+                          profilePicture: '',
+                          bio: '',
+                          location: undefined,
+                          interests: [],
+                          ecoPoints: 0,
+                          ecoLevel: 1,
+                          currentStreak: 0,
+                          longestStreak: 0,
+                          lastActive: new Date(),
+                          badges: [],
+                          followers: [],
+                          following: [],
+                          isPrivate: false,
+                          isVerified: false,
+                          createdAt: new Date(),
+                          updatedAt: new Date()
+                        };
+                      }
+                      return follower;
+                    }) || [],
+                    // Fix the following mapping similarly
+                    following: user.following?.map(following => {
+                      if (typeof following === 'string') {
+                        return {
+                          _id: following,
+                          username: '',
+                          email: '',
+                          profilePicture: '',
+                          bio: '',
+                          location: undefined,
+                          interests: [],
+                          ecoPoints: 0,
+                          ecoLevel: 1,
+                          currentStreak: 0,
+                          longestStreak: 0,
+                          lastActive: new Date(),
+                          badges: [],
+                          followers: [],
+                          following: [],
+                          isPrivate: false,
+                          isVerified: false,
+                          createdAt: new Date(),
+                          updatedAt: new Date()
+                        };
+                      }
+                      return following;
+                    }) || [],
+                    currentStreak: user.streaks?.current || 0,
+                    longestStreak: user.streaks?.longest || 0,
+                    lastActive: new Date(),
+                    isPrivate: false,
+                    isVerified: false,
+                    createdAt: new Date(user.createdAt),
+                    updatedAt: new Date(user.updatedAt)
+                  } : undefined}
                   onLike={handlePostLike}
                 />
               </motion.div>
