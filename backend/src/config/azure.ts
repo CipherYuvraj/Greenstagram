@@ -1,66 +1,99 @@
+import { DefaultAzureCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
-import { DefaultAzureCredential, AzureCliCredential } from '@azure/identity';
+import logger from '@/utils/logger';
 
-export class AzureKeyVault {
-  private client: SecretClient | null = null;
-  private isInitialized = false;
-  private initializationAttempted = false;
+let secretClient: SecretClient;
 
-  constructor() {
-    // Don't initialize in constructor to avoid blocking
-    // Initialize when first needed
+export const initializeAzureKeyVault = async (): Promise<void> => {
+  try {
+    if (!process.env.AZURE_KEY_VAULT_URL) {
+      logger.warn('Azure Key Vault URL not provided, using fallback secrets');
+      return;
+    }
+
+    const credential = new DefaultAzureCredential();
+    secretClient = new SecretClient(process.env.AZURE_KEY_VAULT_URL, credential);
+    
+    // Test connection
+    await secretClient.getSecret('jwt-secret');
+    logger.info('Azure Key Vault connected successfully');
+  } catch (error) {
+    logger.warn('Azure Key Vault connection failed, using fallback secrets:', error);
   }
+};
 
-  private async initialize(): Promise<void> {
-    if (this.initializationAttempted) return;
+export const getSecret = async (secretName: string, fallbackKey?: string): Promise<string | undefined> => {
+  try {
+    if (secretClient) {
+      const secret = await secretClient.getSecret(secretName);
+      return secret.value;
+    }
+  } catch (error) {
+    logger.warn(`Failed to get secret ${secretName} from Key Vault:`, error);
+  }
+  
+  // Fallback to environment variable
+  if (fallbackKey) {
+    return process.env[fallbackKey];
+  }
+  
+  return undefined;
+};
+
+export const getJWTSecret = async (): Promise<string> => {
+  const secret = await getSecret('jwt-secret', 'JWT_SECRET');
+  if (!secret) {
+    throw new Error('JWT secret not found in Key Vault or environment variables');
+  }
+  return secret;
+};
+
+export const getGroqAPIKey = async (): Promise<string> => {
+  const key = await getSecret('groq-api-key', 'GROQ_API_KEY');
+  if (!key) {
+    throw new Error('GROQ API key not found');
+  }
+  return key;
+};
+
+export const getPlantNetAPIKey = async (): Promise<string> => {
+  const key = await getSecret('plantnet-api-key', 'PLANTNET_API_KEY');
+  if (!key) {
+    throw new Error('PlantNet API key not found');
+  }
+  return key;
+};
+
+class AzureKeyVault {
+  private client: SecretClient | null = null;
+  private isInitialized: boolean = false;
+  private initializationAttempted: boolean = false;
+
+  async initialize(): Promise<void> {
+    if (this.initializationAttempted) {
+      return;
+    }
+    
     this.initializationAttempted = true;
-
+    
     try {
-      // Ensure environment is loaded first
-      if (!process.env.AZURE_KEY_VAULT_URL && !process.env.KEYVAULT_URI) {
-        // Try to load .env file again if variables are missing
-        require('dotenv').config();
-      }
-
-      // Debug: Check environment variables
-      console.log('🔍 Debug - Environment variables check:');
-      console.log('AZURE_KEY_VAULT_URL:', process.env.AZURE_KEY_VAULT_URL);
-      console.log('KEYVAULT_URI:', process.env.KEYVAULT_URI);
-      console.log('NODE_ENV:', process.env.NODE_ENV);
+      const vaultUrl = process.env.AZURE_KEY_VAULT_URL || process.env.KEYVAULT_URI;
       
-      const keyVaultUrl = process.env.AZURE_KEY_VAULT_URL || process.env.KEYVAULT_URI;
-      
-      if (!keyVaultUrl) {
-        console.warn('⚠️ No Azure Key Vault URL provided. Using environment variables only.');
+      if (!vaultUrl) {
+        console.warn('⚠️ No Azure Key Vault URL provided (AZURE_KEY_VAULT_URL or KEYVAULT_URI)');
+        console.warn('⚠️ Will fallback to environment variables for secrets');
+        this.client = null;
+        this.isInitialized = false;
         return;
       }
 
-      // Check if the URL is properly formatted
-      if (!keyVaultUrl.startsWith('https://') || !keyVaultUrl.includes('.vault.azure.net')) {
-        console.error(`❌ Invalid Key Vault URL format: ${keyVaultUrl}`);
-        return;
-      }
-
-      console.log(`🔧 Attempting to connect to Azure Key Vault: ${keyVaultUrl}`);
-
-      // Try Azure CLI credential first, then fallback to DefaultAzureCredential
-      let credential;
-      try {
-        console.log('🔑 Trying Azure CLI authentication first...');
-        credential = new AzureCliCredential();
-        
-        // Test the credential by trying to get a token
-        await credential.getToken('https://vault.azure.net/.default');
-        console.log('✅ Azure CLI authentication successful');
-      } catch (cliError) {
-        console.log('⚠️ Azure CLI authentication failed, trying DefaultAzureCredential...');
-        console.log('CLI Error:', cliError instanceof Error ? cliError.message : String(cliError));
-        credential = new DefaultAzureCredential();
-      }
-
-      this.client = new SecretClient(keyVaultUrl, credential);
-
-      // Test the connection by trying to access a test secret
+      console.log('🔄 Initializing Azure Key Vault connection...');
+      console.log(`📍 Vault URL: ${vaultUrl}`);
+      
+      const credential = new DefaultAzureCredential();
+      this.client = new SecretClient(vaultUrl, credential);
+      
+      // Test the connection
       await this.testConnection();
       
       this.isInitialized = true;

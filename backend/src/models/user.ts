@@ -1,5 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { IBadge } from '@/types';
+import { io } from '../index';
+
+const badgeSchema = new Schema<IBadge>({
+  badgeId: { type: String, required: true },
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  icon: { type: String, required: true },
+  earnedAt: { type: Date, default: Date.now },
+  category: { 
+    type: String, 
+    enum: ['activity', 'challenge', 'streak', 'special'], 
+    required: true 
+  }
+});
 
 export interface IUser extends Document {
   username: string;
@@ -19,32 +34,34 @@ export interface IUser extends Document {
   followers: mongoose.Types.ObjectId[];
   following: mongoose.Types.ObjectId[];
   isActive: boolean;
+  lastActive:Date;
   lastLogin?: Date;
+  currentStreak: number;
+  isPrivate: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
+  username: { 
+    type: String, 
+    required: true, 
+    unique: true, 
     trim: true,
     minlength: 3,
     maxlength: 30,
     match: /^[a-zA-Z0-9_]+$/
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true, 
     lowercase: true,
-    trim: true,
     match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6
+  password: { 
+    type: String, 
+    required: true, 
+    minlength: 6 
   },
   profilePicture: {
     type: String,
@@ -66,10 +83,7 @@ const userSchema = new Schema<IUser>({
     default: 0,
     min: 0
   },
-  badges: [{
-    type: String,
-    enum: ['eco_warrior', 'plant_expert', 'recycling_master', 'energy_saver', 'water_guardian']
-  }],
+  badges: [badgeSchema],
   streaks: {
     current: {
       type: Number,
@@ -104,6 +118,12 @@ const userSchema = new Schema<IUser>({
   timestamps: true
 });
 
+// Indexes
+userSchema.index({ username: 1 });
+userSchema.index({ email: 1 });
+userSchema.index({ ecoPoints: -1 });
+userSchema.index({ 'location.coordinates': '2dsphere' });
+
 // Password hashing middleware
 userSchema.pre<IUser>('save', async function(next) {
   if (!this.isModified('password')) return next();
@@ -117,9 +137,88 @@ userSchema.pre<IUser>('save', async function(next) {
   }
 });
 
+// Pre-save middleware for eco-level calculation and notifications
+userSchema.pre('save', async function(next) {
+  if (this.isModified('ecoPoints')) {
+    const newLevel = Math.floor(this.ecoPoints / 100) + 1;
+    const oldLevel = this.ecoLevel;
+    
+    this.ecoLevel = newLevel;
+    
+    // Level up notification
+    if (newLevel > oldLevel) {
+      try {
+        io.emit(`user:${this._id}:levelup`, { 
+          newLevel, 
+          ecoPoints: this.ecoPoints 
+        });
+      } catch (error) {
+        console.warn('Failed to emit level up event:', error);
+      }
+    }
+    
+    // Points update notification
+    try {
+      io.emit(`user:${this._id}:points`, { 
+        ecoPoints: this.ecoPoints, 
+        ecoLevel: this.ecoLevel 
+      });
+    } catch (error) {
+      console.warn('Failed to emit points update event:', error);
+    }
+  }
+  next();
+});
+userSchema.methods.addBadge = function(badge: any) {
+  if (!this.badges) {
+    this.badges = [];
+  }
+   if (!this.badges.some((b: any) => b.badgeId === badge.badgeId)) {
+    this.badges.push(badge);
+  }
+};
 // Password comparison method
 userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.addBadge = function(badge: Omit<IBadge, 'earnedAt'>) {
+  const existingBadge = this.badges.find((b: { badgeId: string; }) => b.badgeId === badge.badgeId);
+  if (!existingBadge) {
+    this.badges.push({ ...badge, earnedAt: new Date() });
+    
+    // Emit badge earned event
+    try {
+      io.emit(`user:${this._id}:badge`, this.badges[this.badges.length - 1]);
+    } catch (error) {
+      console.warn('Failed to emit badge event:', error);
+    }
+  }
+};
+
+userSchema.methods.updateStreak = function() {
+  const today = new Date();
+  const lastActive = this.lastActive || new Date(0);
+  const diffDays = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 1) {
+    this.currentStreak += 1;
+    this.ecoPoints += 10; // Streak bonus
+    this.longestStreak = Math.max(this.currentStreak, this.longestStreak);
+  } else if (diffDays > 1) {
+    this.currentStreak = 1;
+  }
+  
+  this.lastActive = today;
+};
+
+// Static methods
+userSchema.statics.findByEmail = function(email: string) {
+  return this.findOne({ email: email.toLowerCase() });
+};
+
+userSchema.statics.findByUsername = function(username: string) {
+  return this.findOne({ username: new RegExp(`^${username}$`, 'i') });
 };
 
 // Remove password from JSON output

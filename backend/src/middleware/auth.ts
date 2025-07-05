@@ -1,101 +1,97 @@
-import { Request, Response, NextFunction } from 'express';
-import { authService } from '../services/authService';
-import { logger } from '../utils/logger';
+import { Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { User } from '@/models/User';
+import { getJWTSecret } from '@/config/azure';
+import { AuthRequest } from '@/types';
+import logger from '@/utils/logger';
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    userId: string;
-  };
-}
-
-export const authenticate = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const authenticate = async (req:any , res: any, next: NextFunction) => {
   try {
-    const authHeader = req.header('Authorization');
+    const token = req.header('Authorization')?.replace('Bearer ', '');
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({
-        success: false,
-        message: 'Authentication required - missing or invalid token format'
-      });
-      return;
-    }
-
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-
     if (!token) {
-      res.status(401).json({
-        success: false,
-        message: 'Authentication required - no token provided'
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Access denied. No token provided.' 
       });
-      return;
     }
 
-    const decoded = await authService.verifyToken(token);
+    const jwtSecret = await getJWTSecret();
+    const decoded = jwt.verify(token, jwtSecret) as { userId: string };
     
-    // Verify user still exists and is active
-    const user = await authService.getUserById(decoded.userId);
-    if (!user || !user.isActive) {
-      res.status(401).json({
-        success: false,
-        message: 'Authentication failed - user not found or inactive'
+    const user = await User.findById(decoded.userId).select('-password');
+    if (!user) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid token. User not found.' 
       });
-      return;
     }
 
-    req.user = { userId: decoded.userId };
+    // Update last active and streak
+    // Direct update instead of using updateStreak method
+    const now = new Date();
+    user.lastActive = now;
+    
+    // Check if it's a new day since last login
+    const lastActive = user.lastActive || new Date(0);
+    const isNewDay = 
+      now.getDate() !== lastActive.getDate() || 
+      now.getMonth() !== lastActive.getMonth() || 
+      now.getFullYear() !== lastActive.getFullYear();
+      
+    if (isNewDay) {
+      // If last active was yesterday, increment streak
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      if (lastActive.toDateString() === yesterday.toDateString()) {
+        user.streaks.current= (user.streaks.current || 0) + 1;
+      } else {
+        // Reset streak if more than a day has passed
+        user.streaks.current = 1;
+      }
+    }
+    
+    await user.save();
+
+    req.user = user.toObject();
     next();
-
-  } catch (error: any) {
-    logger.error('Authentication middleware error:', error);
-    
-    let message = 'Authentication failed';
-    if (error.message.includes('expired')) {
-      message = 'Token has expired';
-    } else if (error.message.includes('invalid')) {
-      message = 'Invalid token';
-    }
-
-    res.status(401).json({
-      success: false,
-      message
+  } catch (error) {
+    logger.error('Authentication error:', error);
+    res.status(401).json({ 
+      success: false, 
+      message: 'Invalid token.' 
     });
   }
 };
 
-// Optional authentication middleware - doesn't fail if no token provided
-export const optionalAuth = async (
-  req: AuthenticatedRequest,
-  _res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.header('Authorization');
+    const token = req.header('Authorization')?.replace('Bearer ', '');
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      next();
-      return;
-    }
-
-    const token = authHeader.substring(7);
-
     if (token) {
-      try {
-        const decoded = await authService.verifyToken(token);
-        req.user = { userId: decoded.userId };
-      } catch (error) {
-        // Ignore token errors in optional auth
-        logger.warn('Optional auth - invalid token provided');
+      const jwtSecret = await getJWTSecret();
+      const decoded = jwt.verify(token, jwtSecret) as { userId: string };
+      const user = await User.findById(decoded.userId).select('-password');
+      
+      if (user) {
+        req.user = user.toObject();
       }
     }
-
+    
     next();
-
-  } catch (error: any) {
-    logger.error('Optional authentication middleware error:', error);
-    next(); // Continue even if there's an error
+  } catch (error) {
+    // Continue without authentication for optional routes
+    next();
   }
+};
+
+export const requireAdmin = (req: any, res: any, next: NextFunction) => {
+  if (!req.user || !req.user.isVerified) {
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Admin access required.' 
+    });
+  }
+  next();
 };

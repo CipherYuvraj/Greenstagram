@@ -1,109 +1,101 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { IPost, IComment, IMedia } from '@/types';
 
-export interface IPost extends Document {
-  userId: mongoose.Types.ObjectId;
-  content: string;
-  imageUrls: string[];
-  videoUrls: string[];
-  hashtags: string[];
-  location?: {
-    coordinates: [number, number]; // [longitude, latitude]
-    name: string;
-  };
-  ecoChallenge?: mongoose.Types.ObjectId;
-  likes: mongoose.Types.ObjectId[];
-  comments: mongoose.Types.ObjectId[];
-  shares: number;
-  visibility: 'public' | 'followers' | 'private';
-  ecoPoints: number;
-  // AI-powered features
-  plantData?: {
-    species?: string;
-    confidence?: number;
-    healthScore?: number;
-    tips?: string[];
-  };
-}
+const mediaSchema = new Schema<IMedia>({
+  type: { 
+    type: String, 
+    enum: ['image', 'video'], 
+    required: true 
+  },
+  url: { 
+    type: String, 
+    required: true 
+  },
+  publicId: { 
+    type: String, 
+    required: true 
+  },
+  alt: String,
+  width: Number,
+  height: Number
+});
+
+const commentSchema = new Schema<IComment>({
+  userId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  content: { 
+    type: String, 
+    required: true, 
+    maxlength: 500 
+  },
+  likes: [{ 
+    type: Schema.Types.ObjectId, 
+    ref: 'User' 
+  }],
+  replies: [{ 
+    type: Schema.Types.ObjectId, 
+    ref: 'Comment' 
+  }]
+}, {
+  timestamps: true
+});
 
 const postSchema = new Schema<IPost>({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+  userId: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
   },
-  content: {
-    type: String,
-    required: true,
-    maxlength: 2000
+  content: { 
+    type: String, 
+    required: true, 
+    maxlength: 2000 
   },
-  imageUrls: [{
-    type: String,
-    validate: {
-      validator: (url: string) => /^https?:\/\/.+/.test(url),
-      message: 'Invalid image URL'
-    }
-  }],
-  videoUrls: [{
-    type: String,
-    validate: {
-      validator: (url: string) => /^https?:\/\/.+/.test(url),
-      message: 'Invalid video URL'
-    }
-  }],
-  hashtags: [{
-    type: String,
-    lowercase: true,
+  media: [mediaSchema],
+  hashtags: [{ 
+    type: String, 
     trim: true,
-    match: /^[a-zA-Z0-9_]+$/
+    lowercase: true 
+  }],
+  mentions: [{ 
+    type: Schema.Types.ObjectId, 
+    ref: 'User' 
   }],
   location: {
+    name: String,
     coordinates: {
       type: [Number],
       index: '2dsphere'
-    },
-    name: String
+    }
   },
-  ecoChallenge: {
-    type: Schema.Types.ObjectId,
-    ref: 'Challenge'
+  challenge: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'Challenge' 
   },
-  likes: [{
-    type: Schema.Types.ObjectId,
-    ref: 'User'
+  likes: [{ 
+    type: Schema.Types.ObjectId, 
+    ref: 'User' 
   }],
-  comments: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Comment'
-  }],
-  shares: {
-    type: Number,
-    default: 0,
-    min: 0
+  comments: [commentSchema],
+  shares: { 
+    type: Number, 
+    default: 0 
   },
-  visibility: {
-    type: String,
-    enum: ['public', 'followers', 'private'],
-    default: 'public'
+  isEcoPost: { 
+    type: Boolean, 
+    default: true 
   },
-  ecoPoints: {
-    type: Number,
-    default: 0,
-    min: 0
+  ecoCategory: { 
+    type: String, 
+    enum: ['gardening', 'recycling', 'sustainable-living', 'renewable-energy', 'wildlife', 'climate-action']
   },
-  // AI-powered plant identification data
-  plantData: {
-    species: String,
-    confidence: {
-      type: Number,
-      min: 0,
-      max: 1
-    },
-    healthScore: {
-      type: Number,
-      min: 0,
-      max: 100
-    },
-    tips: [String]
+  visibility: { 
+    type: String, 
+    enum: ['public', 'private', 'friends'], 
+    default: 'public' 
   }
 }, {
   timestamps: true
@@ -112,7 +104,39 @@ const postSchema = new Schema<IPost>({
 // Indexes for performance
 postSchema.index({ userId: 1, createdAt: -1 });
 postSchema.index({ hashtags: 1 });
+postSchema.index({ ecoCategory: 1 });
 postSchema.index({ 'location.coordinates': '2dsphere' });
+postSchema.index({ challenge: 1 });
 postSchema.index({ createdAt: -1 });
 
-export const Post = mongoose.model<IPost>('Post', postSchema);
+// Text index for search
+postSchema.index({
+  content: 'text',
+  hashtags: 'text',
+  'location.name': 'text'
+});
+
+// Virtual for engagement score
+postSchema.virtual('engagementScore').get(function() {
+  const likes = this.likes.length;
+  const comments = this.comments.length;
+  const shares = this.shares;
+  const hours = (Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60);
+  
+  // Weighted engagement score with time decay
+  return Math.round((likes * 1 + comments * 2 + shares * 3) / Math.log(hours + 2));
+});
+
+// Pre-save middleware to extract hashtags and mentions
+postSchema.pre('save', function(next) {
+  // Extract hashtags
+  const hashtagRegex = /#[a-zA-Z0-9_]+/g;
+  const hashtagMatches = this.content.match(hashtagRegex);
+  if (hashtagMatches) {
+    this.hashtags = [...new Set(hashtagMatches.map(tag => tag.slice(1).toLowerCase()))];
+  }
+  
+  next();
+});
+
+export default mongoose.model<IPost>('Post', postSchema);
