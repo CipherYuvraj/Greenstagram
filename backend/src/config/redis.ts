@@ -1,62 +1,154 @@
-import { createClient, RedisClientType } from 'redis';
-import logger from '@/utils/logger';
+import { createClient } from 'redis';
+import logger from '../utils/logger';
 
-let redisClient: RedisClientType;
+// Redis client instance
+let redisClient: any = null;
+let redisEnabled = false;
 
-export const connectRedis = async (): Promise<void> => {
+/**
+ * Connect to Redis server
+ */
+export const connectRedis = async () => {
   try {
+    if (!process.env.REDIS_URL) {
+      logger.warn('Redis URL not found in environment variables. Redis caching will be disabled.');
+      return;
+    }
+
     redisClient = createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379'
+      url: process.env.REDIS_URL,
+      socket: {
+        reconnectStrategy: (retries) => {
+          // Limit reconnection attempts to avoid infinite retries
+          if (retries > 5) {
+            logger.warn('Max Redis reconnection attempts reached. Redis caching will be disabled.');
+            return false; // Stop retrying
+          }
+          return Math.min(retries * 100, 3000); // Time between retries with exponential backoff
+        }
+      }
     });
 
-    redisClient.on('error', (err:any) => {
+    // Handle connection events
+    redisClient.on('error', (err: any) => {
       logger.error('Redis Client Error:', err);
+      redisEnabled = false;
     });
 
     redisClient.on('connect', () => {
-      logger.info('Redis connected successfully');
+      logger.info('Redis Client Connected');
+      redisEnabled = true;
+    });
+
+    redisClient.on('reconnecting', () => {
+      logger.info('Redis Client Reconnecting...');
+    });
+
+    redisClient.on('end', () => {
+      logger.info('Redis Client Connection Closed');
+      redisEnabled = false;
     });
 
     await redisClient.connect();
+    redisEnabled = true;
+    logger.info('Redis connected successfully');
   } catch (error) {
     logger.error('Redis connection error:', error);
-    // Don't exit process, Redis is optional
+    logger.warn('Application will continue without Redis caching');
+    redisEnabled = false;
   }
 };
 
-export const getRedisClient = (): RedisClientType => {
-  return redisClient;
-};
-
-export const cacheSet = async (key: string, value: any, expiration: number = 3600): Promise<void> => {
-  try {
-    if (redisClient?.isReady) {
-      await redisClient.setEx(key, expiration, JSON.stringify(value));
-    }
-  } catch (error) {
-    logger.warn('Redis cache set error:', error);
-  }
-};
-
-export const cacheGet = async (key: string): Promise<any> => {
-  try {
-    if (redisClient?.isReady) {
-      const data = await redisClient.get(key);
-      return data ? JSON.parse(data) : null;
-    }
+/**
+ * Get value from Redis cache
+ * @param key Cache key
+ * @returns The cached value or null if not found
+ */
+export const cacheGet = async (key: string) => {
+  if (!redisEnabled || !redisClient) {
     return null;
+  }
+  
+  try {
+    const value = await redisClient.get(key);
+    return value ? JSON.parse(value) : null;
   } catch (error) {
-    logger.warn('Redis cache get error:', error);
+    logger.error('Error getting data from Redis cache:', error);
     return null;
   }
 };
 
-export const cacheDel = async (key: string): Promise<void> => {
-  try {
-    if (redisClient?.isReady) {
-      await redisClient.del(key);
-    }
-  } catch (error) {
-    logger.warn('Redis cache delete error:', error);
+/**
+ * Set value in Redis cache
+ * @param key Cache key
+ * @param value Value to cache
+ * @param ttl Time to live in seconds
+ * @returns true if successful, false otherwise
+ */
+export const cacheSet = async (key: string, value: any, ttl: number = 3600) => {
+  if (!redisEnabled || !redisClient) {
+    return false;
   }
+  
+  try {
+    await redisClient.set(key, JSON.stringify(value), { EX: ttl });
+    return true;
+  } catch (error) {
+    logger.error('Error setting data in Redis cache:', error);
+    return false;
+  }
+};
+
+/**
+ * Delete value from Redis cache
+ * @param key Cache key
+ * @returns true if successful, false otherwise
+ */
+export const cacheDelete = async (key: string) => {
+  if (!redisEnabled || !redisClient) {
+    return false;
+  }
+  
+  try {
+    await redisClient.del(key);
+    return true;
+  } catch (error) {
+    logger.error('Error deleting data from Redis cache:', error);
+    return false;
+  }
+};
+
+/**
+ * Clear Redis cache
+ * @returns true if successful, false otherwise
+ */
+export const cacheClear = async () => {
+  if (!redisEnabled || !redisClient) {
+    return false;
+  }
+  
+  try {
+    await redisClient.flushDb();
+    return true;
+  } catch (error) {
+    logger.error('Error clearing Redis cache:', error);
+    return false;
+  }
+};
+
+/**
+ * Check if Redis is connected and available
+ * @returns true if Redis is available, false otherwise
+ */
+export const isRedisAvailable = () => {
+  return redisEnabled && redisClient?.isReady;
+};
+
+export default {
+  client: redisClient,
+  isRedisAvailable,
+  get: cacheGet,
+  set: cacheSet,
+  delete: cacheDelete,
+  clear: cacheClear
 };

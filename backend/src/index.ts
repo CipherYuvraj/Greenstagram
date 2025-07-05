@@ -15,9 +15,11 @@ import "express-async-errors";
 
 import { connectDB } from "./config/database";
 import { connectRedis } from "./config/redis";
+import redisClient from "./config/redis";
 import { initializeAzureKeyVault, azureKeyVault } from "./config/azure";
+import { initializeAppInsights } from "./config/applicationInsights";
 import { errorHandler } from "./middleware/errorHandler";
-import  notFound  from "./middleware/notFound";
+import notFound from "./middleware/notFound";
 import { socketHandler } from "./socket/socketHandler";
 import logger from "./utils/logger";
 
@@ -76,9 +78,44 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 const initializeApp = async () => {
   try {
     await connectDB();
-    await connectRedis();
-    await initializeAzureKeyVault();
-    logger.info("All services initialized successfully");
+    logger.info("MongoDB connected successfully");
+    
+    // Try to connect to Redis, but don't fail if it's not available
+    try {
+      await connectRedis();
+    } catch (error) {
+      logger.warn("Redis connection failed, continuing without caching");
+    }
+    
+    // Initialize Application Insights if configured
+    try {
+      if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
+        const appInsightsInitialized = initializeAppInsights();
+        if (appInsightsInitialized) {
+          logger.info("Application Insights initialized successfully");
+        } else {
+          logger.warn("Application Insights initialization failed, continuing without telemetry");
+        }
+      } else {
+        logger.info("Application Insights connection string not configured, skipping initialization");
+      }
+    } catch (error) {
+      logger.warn("Application Insights initialization error:", error);
+    }
+    
+    // Initialize Azure Key Vault if configured
+    try {
+      if (process.env.AZURE_KEY_VAULT_URL) {
+        await initializeAzureKeyVault();
+        logger.info("Azure Key Vault initialized successfully");
+      } else {
+        logger.info("Azure Key Vault URL not configured, skipping initialization");
+      }
+    } catch (error) {
+      logger.warn("Azure Key Vault initialization failed, using fallback secrets");
+    }
+    
+    logger.info("Application initialization completed");
   } catch (error) {
     logger.error("Failed to initialize services:", error);
     process.exit(1);
@@ -100,14 +137,22 @@ app.use("/health", healthRoutes);
 
 // Simple health check directly in index.ts (in case /routes/health isn't used)
 app.get("/healthz", (_req, res) => {
+  const appInsights = require('./config/applicationInsights');
+  
   res.json({
     success: true,
     status: "OK",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || "development",
     services: {
-      keyVault: process.env.AZURE_KEY_VAULT_URL ? "configured" : "not configured",
       database: "connected",
+      redis: redisClient?.isRedisAvailable() ? "connected" : "not connected",
+      keyVault: process.env.AZURE_KEY_VAULT_URL ? 
+        (azureKeyVault.isConnected() ? "connected" : "not connected") : 
+        "not configured",
+      appInsights: process.env.APPLICATIONINSIGHTS_CONNECTION_STRING ? 
+        (appInsights.isConnected() ? "connected" : "not connected") : 
+        "not configured"
     },
   });
 });
@@ -126,6 +171,13 @@ initializeApp().then(() => {
     logger.info(
       `🔐 Key Vault: ${
         azureKeyVault.isConnected() ? "✅ Connected" : "❌ Not Connected"
+      }`
+    );
+    // Add App Insights status logging
+    const appInsights = require('./config/applicationInsights');
+    logger.info(
+      `📊 Application Insights: ${
+        appInsights.isConnected() ? "✅ Connected" : "❌ Not Connected"
       }`
     );
     logger.info(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);

@@ -11,48 +11,64 @@ interface CustomError extends Error {
 
 export const errorHandler = (
   err: CustomError,
-  _req: any,
-  res: Response) => {
-  let error = { ...err };
-  error.message = err.message;
-
-  // Log error
-  logger.error(err);
-
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = { name: 'CastError', message, statusCode: 404 } as CustomError;
-  }
-
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    const message = 'Duplicate field value entered';
-    error = { name: 'DuplicateError', message, statusCode: 400 } as CustomError;
-  }
-
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors || {}).map((val: any) => val.message).join(', ');
-    error = { name: 'ValidationError', message, statusCode: 400 } as CustomError;
-  }
-
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = { name: 'JsonWebTokenError', message, statusCode: 401 } as CustomError;
-  }
-
-  if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = { name: 'TokenExpiredError', message, statusCode: 401 } as CustomError;
-  }
-
-  res.status(error.statusCode || 500).json({
-    success: false,
-    message: error.message || 'Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  req: Request,
+  res: Response,
+  _next: NextFunction) => {
+  // Log the error for debugging
+  logger.error(`Error handling request: ${req.method} ${req.path}`, {
+    error: err.message,
+    stack: err.stack,
+    code: err.code
   });
+
+  // Check for specific error types
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation Error',
+      errors: formatValidationErrors(err),
+      code: 'VALIDATION_ERROR'
+    });
+  }
+
+  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token',
+      code: 'INVALID_TOKEN'
+    });
+  }
+
+  if ((err as any).code === 'ECONNREFUSED' && err.message?.includes('Redis')) {
+    logger.warn('Redis connection error in request - continuing without caching');
+    // Don't return an error to the client, let the request continue
+    return _next();
+  }
+
+  // Default error response
+  const statusCode = err.statusCode || 500;
+  const message = statusCode === 500 ? 'Server error' : err.message || 'Something went wrong';
+
+  return res.status(statusCode).json({
+    success: false,
+    message,
+    code: err.code || 'SERVER_ERROR'
+  });
+};
+
+/**
+ * Format mongoose validation errors into a readable format
+ */
+const formatValidationErrors = (err: any) => {
+  const errors: Record<string, string> = {};
+
+  if (err.errors) {
+    Object.keys(err.errors).forEach(key => {
+      errors[key] = err.errors[key].message;
+    });
+  }
+
+  return errors;
 };
 
 export const notFound = (req: Request, res: Response, _next: NextFunction) => {
