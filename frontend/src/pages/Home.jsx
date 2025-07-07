@@ -96,21 +96,21 @@ const Home = () => {
   const posts = data?.pages?.flatMap(page => page.data.posts) || [];
 
   const feedTabs = [
-    { 
-      key: 'following', 
-      label: 'Following', 
+    {
+      key: 'following',
+      label: 'Following',
       icon: Users,
       description: 'Posts from people you follow'
     },
-    { 
-      key: 'trending', 
-      label: 'Trending', 
+    {
+      key: 'trending',
+      label: 'Trending',
       icon: TrendingUp,
       description: 'Popular posts this week'
     },
-    { 
-      key: 'discover', 
-      label: 'Discover', 
+    {
+      key: 'discover',
+      label: 'Discover',
       icon: Sparkles,
       description: 'Explore new content'
     }
@@ -119,7 +119,6 @@ const Home = () => {
   const handlePostLike = async (postId) => {
     try {
       await apiClient.post(`/posts/${postId}/like`);
-      // Optimistic update would go here
     } catch (error) {
       console.error('Failed to like post:', error);
     }
@@ -135,9 +134,9 @@ const Home = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <LoadingSpinner 
-            size="lg" 
-            variant="eco" 
+          <LoadingSpinner
+            size="lg"
+            variant="eco"
             text="Loading your eco-feed..."
           />
         </div>
@@ -158,218 +157,133 @@ const Home = () => {
     );
   }
 
-  return (
-    <Layout showParticles={true} particleTheme="eco">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Welcome Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8 p-6 bg-gradient-to-r from-primary-500 via-secondary-500 to-emerald-500 rounded-2xl text-white relative overflow-hidden"
-        >
-          {/* Animated background particles */}
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 bg-white/20 rounded-full"
-                animate={{
-                  x: [0, Math.random() * 100],
-                  y: [0, Math.random() * 100],
-                  opacity: [0, 1, 0]
-                }}
-                transition={{
-                  duration: 3 + Math.random() * 2,
-                  repeat: Infinity,
-                  delay: Math.random() * 2
-                }}
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`
-                }}
-              />
-            ))}
-          </div>
-
-          <div className="relative z-10">
-            <motion.h1
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-3xl font-bold mb-2"
+return (
+  <Layout showParticles={true} particleTheme="eco" className="!p-0">
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      {/* Feed Type Selector */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="mb-6"
+      >
+        <div className="flex space-x-1 bg-white/80 backdrop-blur-sm rounded-xl p-1 border border-gray-200">
+          {feedTabs.map((tab) => (
+            <motion.button
+              key={tab.key}
+              onClick={() => setFeedType(tab.key)}
+              className={`relative flex-1 px-4 py-3 rounded-lg transition-all duration-300 ${feedType === tab.key
+                  ? 'text-white shadow-lg'
+                  : 'text-gray-600 hover:text-primary-600'}`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              Welcome back, {user?.username || 'Eco Warrior'}! 🌱
-            </motion.h1>
-            
-            <motion.p
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-white/90 mb-4"
-            >
-              You're at Level {user?.ecoLevel || 1} with {user?.ecoPoints || 0} eco-points! 
-              Keep sharing your green journey.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              className="flex items-center space-x-4"
-            >
-              <div className="flex items-center space-x-2">
-                <Award className="w-5 h-5" />
-                <span className="text-sm">Streak: {user?.currentStreak || user?.streaks?.current || 0} days</span>
-              </div>
-              
-              {user?.badges && user.badges.length > 0 && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm">Latest badge:</span>
-                  <span className="bg-white/20 px-2 py-1 rounded-full text-xs">
-                    {(() => {
-                      const latestBadge = user.badges[user.badges.length - 1];
-                      if (typeof latestBadge === 'string') {
-                        return latestBadge;
-                      } else if (latestBadge && typeof latestBadge === 'object' && latestBadge.name) {
-                        return latestBadge.name;
-                      } else {
-                        return 'Badge';
-                      }
-                    })()}
-                  </span>
-                </div>
+              {feedType === tab.key && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
               )}
-            </motion.div>
-          </div>
-        </motion.div>
 
-        {/* Feed Type Selector */}
+              <div className="relative z-10 flex items-center justify-center space-x-2">
+                <tab.icon className="w-4 h-4" />
+                <span className="font-medium">{tab.label}</span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+        <motion.p
+          key={feedType}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-sm text-gray-500 mt-2 text-center"
+        >
+          {feedTabs.find(tab => tab.key === feedType)?.description}
+        </motion.p>
+      </motion.div>
+
+      {/* Posts Feed */}
+      <div className="space-y-6">
+        <AnimatePresence mode="popLayout">
+          {posts.map((post, index) => (
+            <motion.div
+              key={`${feedType}-${post._id}`}
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -50, scale: 0.95 }}
+              transition={{
+                duration: 0.5,
+                delay: index * 0.1,
+                type: "spring",
+                stiffness: 100
+              }}
+              layout
+            >
+              <PostCard
+                post={post}
+                currentUser={user}
+                onLike={handlePostLike}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Load More Button */}
+      {hasNextPage && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mb-6"
+          className="flex justify-center mt-8"
         >
-          <div className="flex space-x-1 bg-white/80 backdrop-blur-sm rounded-xl p-1 border border-gray-200">
-            {feedTabs.map((tab) => (
-              <motion.button
-                key={tab.key}
-                onClick={() => setFeedType(tab.key)}
-                className={`relative flex-1 px-4 py-3 rounded-lg transition-all duration-300 ${
-                  feedType === tab.key
-                    ? 'text-white shadow-lg'
-                    : 'text-gray-600 hover:text-primary-600'
-                }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {feedType === tab.key && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-                
-                <div className="relative z-10 flex items-center justify-center space-x-2">
-                  <tab.icon className="w-4 h-4" />
-                  <span className="font-medium">{tab.label}</span>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-          
-          <motion.p
-            key={feedType}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-gray-500 mt-2 text-center"
+          <AnimatedButton
+            onClick={handleLoadMore}
+            loading={isFetchingNextPage}
+            variant="eco"
+            size="lg"
+            className="px-8"
+            particleEffect={true}
+            glowEffect={true}
           >
-            {feedTabs.find(tab => tab.key === feedType)?.description}
-          </motion.p>
+            {isFetchingNextPage ? 'Loading...' : 'Load More Posts'}
+          </AnimatedButton>
         </motion.div>
+      )}
 
-        {/* Posts Feed */}
-        <div className="space-y-6">
-          <AnimatePresence mode="popLayout">
-            {posts.map((post, index) => (
-              <motion.div
-                key={`${feedType}-${post._id}`}
-                initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -50, scale: 0.95 }}
-                transition={{ 
-                  duration: 0.5, 
-                  delay: index * 0.1,
-                  type: "spring",
-                  stiffness: 100
-                }}
-                layout
-              >
-                <PostCard
-                  post={post}
-                  currentUser={user}
-                  onLike={handlePostLike}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {/* Load More Button */}
-        {hasNextPage && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex justify-center mt-8"
+      {/* Empty State */}
+      {posts.length === 0 && !isLoading && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center py-12"
+        >
+          <div className="mb-4">
+            <Sparkles className="w-16 h-16 text-gray-400 mx-auto" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            No posts yet
+          </h3>
+          <p className="text-gray-500 mb-6">
+            {feedType === 'following'
+              ? "Follow some eco-warriors to see their posts here!"
+              : "Be the first to share something amazing!"
+            }
+          </p>
+          <AnimatedButton
+            onClick={() => window.location.href = '/explore'}
+            variant="primary"
+            icon={Sparkles}
           >
-            <AnimatedButton
-              onClick={handleLoadMore}
-              loading={isFetchingNextPage}
-              variant="eco"
-              size="lg"
-              className="px-8"
-              particleEffect={true}
-              glowEffect={true}
-            >
-              {isFetchingNextPage ? 'Loading...' : 'Load More Posts'}
-            </AnimatedButton>
-          </motion.div>
-        )}
-
-        {/* Empty State */}
-        {posts.length === 0 && !isLoading && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-center py-12"
-          >
-            <div className="mb-4">
-              <Sparkles className="w-16 h-16 text-gray-400 mx-auto" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
-              No posts yet
-            </h3>
-            <p className="text-gray-500 mb-6">
-              {feedType === 'following' 
-                ? "Follow some eco-warriors to see their posts here!"
-                : "Be the first to share something amazing!"
-              }
-            </p>
-            <AnimatedButton
-              onClick={() => window.location.href = '/explore'}
-              variant="primary"
-              icon={Sparkles}
-            >
-              Explore Content
-            </AnimatedButton>
-          </motion.div>
-        )}
-      </div>
+            Explore Content
+          </AnimatedButton>
+        </motion.div>
+      )}
+    </div>
     </Layout>
   );
 };
 
 export default Home;
+
