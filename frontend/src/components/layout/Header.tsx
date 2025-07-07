@@ -26,7 +26,8 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   
   const { user, logout } = useAuthStore();
-  const { unreadCount } = useNotificationStore();
+  const notificationStore = useNotificationStore();
+  const unreadCount = (notificationStore as any)?.unreadCount || 0;
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/', active: location.pathname === '/' },

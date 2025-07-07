@@ -2,10 +2,28 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
-import LoginForm from './components/auth/LoginForm';
-import RegisterForm from './components/auth/RegisterForm';
-import Dashboard from './components/dashboard/Dashboard';
+import Home from './pages/Home';
+import Login from './pages/Login';
+// Create a simple Register component placeholder for now
 import './App.css';
+
+// Simple Register component placeholder
+const Register: React.FC = () => {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-800 mb-4">🌱 Register</h1>
+        <p className="text-gray-600">Registration page coming soon!</p>
+        <a 
+          href="/login" 
+          className="mt-4 inline-block bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200"
+        >
+          Go to Login
+        </a>
+      </div>
+    </div>
+  );
+};
 
 // Protected Route Component
 interface ProtectedRouteProps {
@@ -17,10 +35,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
-// Public Route Component (redirect to dashboard if authenticated)
+// Public Route Component (redirect to home if authenticated)
 const PublicRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { token } = useAuthStore();
-  return !token ? <>{children}</> : <Navigate to="/dashboard" replace />;
+  return !token ? <>{children}</> : <Navigate to="/" replace />;
 };
 
 const App: React.FC = () => {
@@ -67,7 +85,7 @@ const App: React.FC = () => {
             path="/login" 
             element={
               <PublicRoute>
-                <LoginForm />
+                <Login />
               </PublicRoute>
             } 
           />
@@ -75,17 +93,17 @@ const App: React.FC = () => {
             path="/register" 
             element={
               <PublicRoute>
-                <RegisterForm />
+                <Register />
               </PublicRoute>
             } 
           />
           
           {/* Protected Routes */}
           <Route 
-            path="/dashboard" 
+            path="/" 
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Home />
               </ProtectedRoute>
             } 
           />
@@ -119,51 +137,6 @@ const App: React.FC = () => {
             } 
           />
           
-          <Route 
-            path="/challenges" 
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">🏆 Challenges</h1>
-                    <p className="text-gray-600">Coming soon! Join eco challenges and earn points.</p>
-                  </div>
-                </div>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/notifications" 
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">🔔 Notifications</h1>
-                    <p className="text-gray-600">Coming soon! Stay updated with your eco community.</p>
-                  </div>
-                </div>
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/profile" 
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">👤 Profile</h1>
-                    <p className="text-gray-600">Coming soon! Manage your eco profile and achievements.</p>
-                  </div>
-                </div>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          
           {/* 404 page */}
           <Route 
             path="*" 
@@ -173,7 +146,7 @@ const App: React.FC = () => {
                   <h1 className="text-4xl font-bold text-gray-800 mb-4">🌿 404</h1>
                   <p className="text-gray-600 mb-4">This page seems to have gone green and disappeared!</p>
                   <a 
-                    href="/dashboard" 
+                    href="/" 
                     className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200"
                   >
                     Return Home
@@ -189,3 +162,5 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+

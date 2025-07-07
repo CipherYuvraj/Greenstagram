@@ -1,43 +1,35 @@
 import { create } from 'zustand';
-import axios from 'axios';
-import { Notification } from '../types';
-import { useAuthStore } from './authStore';
+import { apiClient } from '../services/api';
 
-interface NotificationState {
+type Notification = {
+  _id: string;
+  read: boolean;
+  [key: string]: any;
+};
+
+const useNotificationStore = create<{
   notifications: Notification[];
   unreadCount: number;
   isLoading: boolean;
   error: string | null;
-  
-  // Actions
   fetchNotifications: () => Promise<void>;
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   clearNotifications: () => Promise<void>;
-}
-
-export const useNotificationStore = create<NotificationState>((set, get) => ({
+}>((set, get) => ({
   notifications: [],
   unreadCount: 0,
   isLoading: false,
   error: null,
 
   fetchNotifications: async () => {
-    // Get token from auth store properly
-    const { token } = useAuthStore.getState();
-    if (!token) return;
-    
-    set({ isLoading: true });
-    
     try {
-      const response = await axios.get('/api/notifications', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      set({ isLoading: true });
+      
+      const response = await apiClient.get('/api/notifications');
       
       const notifications = response.data.data.notifications || [];
-      const unreadCount = notifications.filter(
-        (notification: Notification) => !notification.read
-      ).length;
+      const unreadCount = response.data.data.unreadCount || 0;
       
       set({ 
         notifications, 
@@ -45,22 +37,26 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         isLoading: false,
         error: null
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.warn('Failed to fetch notifications:', error);
+      let errorMessage = 'Failed to fetch notifications';
+      if (typeof error === 'object' && error !== null && 'response' in (error as any)) {
+        const err = error as { response?: { data?: { message?: string } } };
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
       set({ 
-        error: error.response?.data?.message || 'Failed to fetch notifications', 
-        isLoading: false 
+        error: errorMessage, 
+        isLoading: false,
+        // Keep previous data on error
+        notifications: get().notifications,
+        unreadCount: get().unreadCount
       });
     }
   },
   
-  markAsRead: async (notificationId: string) => {
-    const { token } = useAuthStore.getState();
-    if (!token) return;
-    
+  markAsRead: async (notificationId: any) => {
     try {
-      await axios.put(`/api/notifications/${notificationId}/read`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await apiClient.put(`/api/notifications/${notificationId}/read`);
       
       const notifications = get().notifications.map(notification => 
         notification._id === notificationId ? 
@@ -76,19 +72,42 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
   
   markAllAsRead: async () => {
-    const { token } = useAuthStore.getState();
-    if (!token) return;
-    
     try {
-      await axios.put('/api/notifications/read-all', {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await apiClient.put('/api/notifications/read-all');
       
       const notifications = get().notifications.map(notification => 
         ({ ...notification, read: true })
       );
       
       set({ notifications, unreadCount: 0 });
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  },
+  
+  clearNotifications: async () => {
+    try {
+      await apiClient.delete('/api/notifications');
+      
+      set({ notifications: [], unreadCount: 0 });
+    } catch (error) {
+      console.error('Failed to clear notifications:', error);
+    }
+  }
+}));
+
+export { useNotificationStore };
+  
+  clearNotifications: async () => {
+    try {
+      await apiClient.delete('/api/notifications');
+      
+      set({ notifications: [], unreadCount: 0 });
+    } catch (error) {
+      console.error('Failed to clear notifications:', error);
+    }
+  }
+}));
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
     }

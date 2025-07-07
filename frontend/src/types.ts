@@ -16,13 +16,18 @@ export interface User {
   currentStreak: number;
   longestStreak: number;
   lastActive: Date;
-  badges: Badge[];
+  badges: Badge[]; // Changed to Badge[] instead of string[]
   followers: User[];
   following: User[];
   isPrivate: boolean;
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  streaks: {
+    current: number;
+    longest: number;
+    lastActivity?: Date;
+  };
   stats?: {
     posts: number;
     followers: number;

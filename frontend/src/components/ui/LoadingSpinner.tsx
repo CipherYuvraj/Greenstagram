@@ -3,52 +3,52 @@ import { motion } from 'framer-motion';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  variant?: 'default' | 'eco' | 'dots' | 'pulse' | 'orbit';
-  color?: string;
+  variant?: 'primary' | 'secondary' | 'eco' | 'white';
   text?: string;
   className?: string;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'md',
-  variant = 'default',
-  color = '#10b981',
+  variant = 'primary',
   text,
   className = ''
 }) => {
-  const sizes = {
-    sm: { spinner: 'w-4 h-4', text: 'text-sm' },
-    md: { spinner: 'w-8 h-8', text: 'text-base' },
-    lg: { spinner: 'w-12 h-12', text: 'text-lg' },
-    xl: { spinner: 'w-16 h-16', text: 'text-xl' }
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12',
+    xl: 'w-16 h-16'
   };
 
-  const renderSpinner = () => {
-    switch (variant) {
-      case 'eco':
-        return (
-          <div className={`relative ${sizes[size].spinner}`}>
-            {/* Outer ring */}
-            <motion.div
-              className="absolute inset-0 rounded-full border-2 border-transparent"
-              style={{ 
-                borderTopColor: color,
-                borderRightColor: `${color}80`
-              }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            />
-            
-            {/* Inner particles */}
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 rounded-full"
-                style={{ 
-                  backgroundColor: color,
-                  left: '50%',
-                  top: '10%',
-                  transformOrigin: '0 200%'
+  const colorClasses = {
+    primary: 'border-primary-500',
+    secondary: 'border-secondary-500',
+    eco: 'border-green-500',
+    white: 'border-white'
+  };
+
+  return (
+    <div className={`flex flex-col items-center justify-center space-y-2 ${className}`}>
+      <motion.div
+        className={`border-4 border-t-transparent rounded-full ${sizeClasses[size]} ${colorClasses[variant]}`}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+      />
+      {text && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-sm text-gray-600"
+        >
+          {text}
+        </motion.p>
+      )}
+    </div>
+  );
+};
+
+export default LoadingSpinner;
                 }}
                 animate={{ rotate: 360 }}
                 transition={{

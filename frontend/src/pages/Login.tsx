@@ -6,10 +6,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Eye, EyeOff, Leaf, Mail, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { useAuthStore } from '@/stores/authStore';
-import AnimatedButton from '@/components/ui/AnimatedButton';
-import ParticleBackground from '@/components/ui/ParticleBackground';
-import FloatingElements from '@/components/ui/FloatingElements';
+import { useAuthStore } from '../store/authStore';
+import AnimatedButton from '../components/ui/AnimatedButton';
+import ParticleBackground from '../components/ui/ParticleBackground';
+import FloatingElements from '../components/ui/FloatingElements';
 
 const schema = yup.object({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -269,7 +269,7 @@ const Login: React.FC = () => {
               { icon: '🌱', label: 'Eco Posts' },
               { icon: '🏆', label: 'Challenges' },
               { icon: '🌍', label: 'Community' }
-            ].map((feature, index) => (
+            ].map((feature) => (
               <motion.div
                 key={feature.label}
                 whileHover={{ scale: 1.05, y: -5 }}

@@ -24,7 +24,7 @@ export interface IUser extends Document {
   bio?: string;
   ecoLevel: number;
   ecoPoints: number;
-  badges: string[];
+  badges: IBadge[]; // Changed from string[] to IBadge[]
   streaks: {
     current: number;
     longest: number;
@@ -34,9 +34,10 @@ export interface IUser extends Document {
   followers: mongoose.Types.ObjectId[];
   following: mongoose.Types.ObjectId[];
   isActive: boolean;
-  lastActive:Date;
+  lastActive: Date;
   lastLogin?: Date;
   currentStreak: number;
+  longestStreak: number; // Add this missing property
   isPrivate: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -83,7 +84,7 @@ const userSchema = new Schema<IUser>({
     default: 0,
     min: 0
   },
-  badges: [badgeSchema],
+  badges: [badgeSchema], // This is correct - using the badge schema
   streaks: {
     current: {
       type: Number,
@@ -113,7 +114,17 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     default: true
   },
-  lastLogin: Date
+  lastLogin: Date,
+  currentStreak: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  longestStreak: {
+    type: Number,
+    default: 0,
+    min: 0
+  }
 }, {
   timestamps: true
 });
@@ -183,7 +194,7 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
 };
 
 userSchema.methods.addBadge = function(badge: Omit<IBadge, 'earnedAt'>) {
-  const existingBadge = this.badges.find((b: { badgeId: string; }) => b.badgeId === badge.badgeId);
+  const existingBadge = this.badges.find((b: IBadge) => b.badgeId === badge.badgeId);
   if (!existingBadge) {
     this.badges.push({ ...badge, earnedAt: new Date() });
     
@@ -202,10 +213,13 @@ userSchema.methods.updateStreak = function() {
   const diffDays = Math.floor((today.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24));
   
   if (diffDays === 1) {
-    this.currentStreak += 1;
+    this.streaks.current += 1;
+    this.currentStreak = this.streaks.current; // Keep both in sync
     this.ecoPoints += 10; // Streak bonus
-    this.longestStreak = Math.max(this.currentStreak, this.longestStreak);
+    this.streaks.longest = Math.max(this.streaks.current, this.streaks.longest);
+    this.longestStreak = this.streaks.longest; // Keep both in sync
   } else if (diffDays > 1) {
+    this.streaks.current = 1;
     this.currentStreak = 1;
   }
   

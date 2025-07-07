@@ -1,24 +1,23 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+      },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Greenstagram',
+        name: 'Greenstagram - Your Eco Social Network',
         short_name: 'Greenstagram',
-        description: 'Eco-focused social media platform',
-        theme_color: '#10b981',
-        background_color: '#ffffff',
-        display: 'standalone',
-        orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        description: 'A social media platform for sustainability enthusiasts',
+        theme_color: '#22c55e',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -29,32 +28,6 @@ export default defineConfig({
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
-          }
-        ]
-      },
-      workbox: {
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\./,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day
-              }
-            }
-          },
-          {
-            urlPattern: /\.(png|jpg|jpeg|svg|gif)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              }
-            }
           }
         ]
       }
@@ -94,10 +67,14 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           query: ['@tanstack/react-query'],
-          ui: ['framer-motion', '@headlessui/react'],
+          ui: ['framer-motion'],
           utils: ['axios', 'date-fns', 'clsx']
         }
       }
     }
+  },
+  define: {
+    'process.env': process.env
   }
 });
+ 
