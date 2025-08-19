@@ -46,25 +46,40 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      register: async (userData: RegisterData) => {
-        try {
-          set({ loading: true });
-          const response = await apiClient.post('/auth/register', userData);
-          const { token, user } = response.data.data;
-          
-          localStorage.setItem('token', token);
-          set({ 
-            user, 
-            token, 
-            isAuthenticated: true, 
-            loading: false 
-          });
-        } catch (error) {
-          set({ loading: false });
-          throw error;
-        }
+      register: async (userData: {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  bio?: string;
+  interests?: string[];
+}) => {
+   set({ loading: true });
+        
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(userData),
+    });
 
+    const result = await response.json();
+
+    if (result.success) {
+      const { token, user } = result.data;
+      localStorage.setItem('token', token);
+      set({ token, user, loading: false });
+      return result;
+    } else {
+      throw new Error(result.message || 'Registration failed');
+    }
+  } catch (error: any) {
+    set({ loading: false });
+    throw error;
+  }
+},
       logout: () => {
         localStorage.removeItem('token');
         set({ 

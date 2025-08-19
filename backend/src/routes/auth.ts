@@ -13,7 +13,7 @@ const router = express.Router();
 // Rate limiting for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts per window
+  max: 10, // 5 attempts per window
   message: {
     success: false,
     message: 'Too many authentication attempts, please try again later.'
@@ -93,10 +93,16 @@ router.post('/register', authLimiter, validateRequest(registerSchema), async (re
 // Login
 router.post('/login', authLimiter, validateRequest(loginSchema), async (req, res:any) => {
   try {
-    const { email, password } = req.body;
+    const { emailOrUsername, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user by email or username
+    const user = await User.findOne({
+      $or: [
+        { email: emailOrUsername },
+        { username: emailOrUsername }
+      ]
+    });
+    
     if (!user) {
       return res.status(400).json({
         success: false,

@@ -40,16 +40,31 @@ export const registerSchema = Joi.object({
     .required()
     .messages({
       'any.only': 'Passwords do not match'
-    })
+    }),
+  bio: Joi.string()
+    .max(500)
+    .optional()
+    .allow(''),
+  interests: Joi.array()
+    .items(Joi.string())
+    .optional()
+    .default([])
 });
 
 export const loginSchema = Joi.object({
-  email: Joi.string()
-    .email()
-    .required(),
+  emailOrUsername: Joi.string()
+    .required()
+    .messages({
+      'any.required': 'Email or username is required'
+    }),
   password: Joi.string()
     .required()
+    .messages({
+      'any.required': 'Password is required'
+    })
 });
+
+// ...existing code for other schemas...
 
 // Post validation schemas
 export const createPostSchema = Joi.object({

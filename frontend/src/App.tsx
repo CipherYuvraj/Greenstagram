@@ -1,29 +1,12 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import Home from './pages/Home';
 import Login from './pages/Login';
-// Create a simple Register component placeholder for now
+import Register from './pages/Register';
+import Profile from './pages/Profile';
 import './App.css';
-
-// Simple Register component placeholder
-const Register: React.FC = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">🌱 Register</h1>
-        <p className="text-gray-600">Registration page coming soon!</p>
-        <a 
-          href="/login" 
-          className="mt-4 inline-block bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200"
-        >
-          Go to Login
-        </a>
-      </div>
-    </div>
-  );
-};
 
 // Protected Route Component
 interface ProtectedRouteProps {
@@ -104,6 +87,16 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Home />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Profile Route */}
+          <Route 
+            path="/profile/:username" 
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } 
           />

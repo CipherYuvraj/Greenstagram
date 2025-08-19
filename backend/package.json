@@ -8,7 +8,7 @@
     "dev": "tsx src/index.ts",
     "dev:watch": "tsx watch src/index.ts",
     "build": "npx tsc --build",
-    "clean": "rm -rf dist",
+    "clean": "rmdir /s /q dist",
     "prebuild": "npm run clean",
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "echo \"No linting specified\" && exit 0",

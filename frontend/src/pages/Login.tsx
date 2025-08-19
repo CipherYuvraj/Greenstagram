@@ -12,7 +12,7 @@ import ParticleBackground from '../components/ui/ParticleBackground';
 import FloatingElements from '../components/ui/FloatingElements';
 
 const schema = yup.object({
-  email: yup.string().email('Invalid email').required('Email is required'),
+  emailOrUsername: yup.string().required('Email or username is required'),
   password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required')
 });
 
@@ -35,7 +35,7 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      await login(data.email, data.password);
+      await login(data.emailOrUsername, data.password);
       toast.success('Welcome back to Greenstagram! 🌱');
       navigate('/');
     } catch (error: any) {
@@ -122,35 +122,35 @@ const Login: React.FC = () => {
             
             <div className="relative z-10">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Email Field */}
+                {/* Email/Username Field */}
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
                 >
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
+                    Email or Username
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
-                      {...register('email')}
-                      type="email"
+                      {...register('emailOrUsername')}
+                      type="text"
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 bg-white/50 backdrop-blur-sm ${
-                        errors.email ? 'border-red-300' : 'border-gray-300'
+                        errors.emailOrUsername ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      placeholder="Enter your email"
+                      placeholder="Enter your email or username"
                     />
                   </div>
                   <AnimatePresence>
-                    {errors.email && (
+                    {errors.emailOrUsername && (
                       <motion.p
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         className="text-red-500 text-sm mt-1"
                       >
-                        {errors.email.message}
+                        {errors.emailOrUsername.message}
                       </motion.p>
                     )}
                   </AnimatePresence>
