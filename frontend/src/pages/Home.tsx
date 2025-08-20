@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Sparkles, TrendingUp, Users, Award, Leaf, LogOut, Settings, Plus } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Leaf, LogOut, Plus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 import { Link, useNavigate } from 'react-router-dom';
 
 // Simple Layout component with navigation
-const Layout: React.FC<{ children: React.ReactNode; showParticles?: boolean; particleTheme?: string; className?: string }> = ({ 
+const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
   children, 
-  showParticles, 
-  particleTheme, 
   className 
 }) => {
   const { user, logout } = useAuthStore();
@@ -93,7 +91,7 @@ const Layout: React.FC<{ children: React.ReactNode; showParticles?: boolean; par
 };
 
 // Simple PostCard component for now
-const PostCard: React.FC<{ post: any; currentUser: any; onLike: (id: string) => void }> = ({ post, currentUser, onLike }) => (
+const PostCard: React.FC<{ post: any; onLike: (id: string) => void }> = ({ post, onLike }) => (
   <motion.div
     whileHover={{ y: -2 }}
     className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-green-100 shadow-lg"
@@ -148,9 +146,8 @@ const PostCard: React.FC<{ post: any; currentUser: any; onLike: (id: string) => 
 );
 
 // Simple LoadingSpinner component
-const LoadingSpinner: React.FC<{ size?: string; variant?: string; text?: string }> = ({ 
+const LoadingSpinner: React.FC<{ size?: string; text?: string }> = ({ 
   size = 'md', 
-  variant = 'default',
   text 
 }) => (
   <div className="flex flex-col items-center space-y-4">
@@ -170,21 +167,15 @@ const AnimatedButton: React.FC<{
   children: React.ReactNode;
   onClick?: () => void;
   loading?: boolean;
-  variant?: string;
   size?: string;
   className?: string;
-  particleEffect?: boolean;
-  glowEffect?: boolean;
   icon?: any;
 }> = ({ 
   children, 
   onClick, 
   loading = false, 
-  variant = 'primary',
   size = 'md',
   className = '',
-  particleEffect,
-  glowEffect,
   icon: Icon
 }) => (
   <motion.button
@@ -370,7 +361,6 @@ const Home: React.FC = () => {
         <div className="flex items-center justify-center min-h-[50vh]">
           <LoadingSpinner
             size="lg"
-            variant="eco"
             text="Loading your eco-feed..."
           />
         </div>
@@ -392,7 +382,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <Layout showParticles={true} particleTheme="eco">
+    <Layout>
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Welcome Header */}
         <motion.div
@@ -470,7 +460,6 @@ const Home: React.FC = () => {
               >
                 <PostCard
                   post={post}
-                  currentUser={user}
                   onLike={handlePostLike}
                 />
               </motion.div>
@@ -485,14 +474,11 @@ const Home: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex justify-center mt-8"
           >
-            <AnimatedButton
+              <AnimatedButton
               onClick={handleLoadMore}
               loading={isFetchingNextPage}
-              variant="eco"
               size="lg"
               className="px-8"
-              particleEffect={true}
-              glowEffect={true}
             >
               {isFetchingNextPage ? 'Loading...' : 'Load More Posts'}
             </AnimatedButton>
@@ -521,7 +507,6 @@ const Home: React.FC = () => {
             </p>
             <AnimatedButton
               onClick={() => window.location.href = '/explore'}
-              variant="primary"
               icon={Sparkles}
             >
               Explore Content
@@ -534,3 +519,4 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+          

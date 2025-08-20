@@ -30,6 +30,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     // Parse request body
     const body = event.body ? JSON.parse(event.body) : {};
 
+    console.log('Auth function - Method:', method, 'Path:', path, 'Body:', body);
+
     switch (`${method} ${path}`) {
       case 'POST /register':
         return await handleRegister(body);
@@ -51,199 +53,256 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       headers,
       body: JSON.stringify({ 
         success: false, 
-        message: 'Internal server error' 
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Server error'
       }),
     };
   }
 };
 
 async function handleRegister(body: any) {
-  const { username, email, password, confirmPassword } = body;
+  try {
+    const { username, email, password, confirmPassword } = body;
 
-  // Validation
-  if (!username || !email || !password || !confirmPassword) {
+    // Validation
+    if (!username || !email || !password || !confirmPassword) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'All fields are required'
+        }),
+      };
+    }
+
+    if (password !== confirmPassword) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Passwords do not match'
+        }),
+      };
+    }
+
+    if (password.length < 6) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Password must be at least 6 characters long'
+        }),
+      };
+    }
+
+    // Check if user exists
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
+    });
+
+    if (existingUser) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: existingUser.email === email ? 'Email already registered' : 'Username already taken'
+        }),
+      };
+    }
+
+    // Create user
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const user = new User({
+      username: username.toLowerCase().trim(),
+      email: email.toLowerCase().trim(),
+      password: hashedPassword,
+      ecoPoints: 50,
+      ecoLevel: 1,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastActive: new Date(),
+      isPrivate: false,
+      isVerified: false,
+      badges: [],
+      followers: [],
+      following: [],
+      interests: [],
+      bio: '',
+      location: undefined
+    });
+
+    await user.save();
+
+    // Generate JWT
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET not configured');
+    }
+
+    const token = jwt.sign(
+      { userId: user._id },
+      jwtSecret,
+      { expiresIn: '7d' }
+    );
+
     return {
-      statusCode: 400,
+      statusCode: 201,
       headers,
       body: JSON.stringify({
-        success: false,
-        message: 'All fields are required'
-      }),
-    };
-  }
-
-  if (password !== confirmPassword) {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Passwords do not match'
-      }),
-    };
-  }
-
-  // Check if user exists
-  const existingUser = await User.findOne({
-    $or: [{ email }, { username }]
-  });
-
-  if (existingUser) {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: existingUser.email === email ? 'Email already registered' : 'Username already taken'
-      }),
-    };
-  }
-
-  // Create user
-  const hashedPassword = await bcrypt.hash(password, 12);
-  const user = new User({
-    username,
-    email,
-    password: hashedPassword,
-    ecoPoints: 50,
-    ecoLevel: 1,
-    currentStreak: 0,
-    longestStreak: 0,
-    lastActive: new Date(),
-    isPrivate: false,
-    isVerified: false,
-    badges: [],
-    followers: [],
-    following: [],
-    interests: []
-  });
-
-  await user.save();
-
-  // Generate JWT
-  const token = jwt.sign(
-    { userId: user._id },
-    process.env.JWT_SECRET!,
-    { expiresIn: '7d' }
-  );
-
-  return {
-    statusCode: 201,
-    headers,
-    body: JSON.stringify({
-      success: true,
-      message: 'User registered successfully',
-      data: {
-        token,
-        user: {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          ecoLevel: user.ecoLevel,
-          ecoPoints: user.ecoPoints
+        success: true,
+        message: 'User registered successfully',
+        data: {
+          token,
+          user: {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            ecoLevel: user.ecoLevel,
+            ecoPoints: user.ecoPoints,
+            currentStreak: user.currentStreak,
+            isPrivate: user.isPrivate
+          }
         }
-      }
-    }),
-  };
+      }),
+    };
+  } catch (error) {
+    console.error('Registration error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        message: 'Registration failed',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Server error'
+      }),
+    };
+  }
 }
 
 async function handleLogin(body: any) {
-  const { emailOrUsername, password } = body;
+  try {
+    const { emailOrUsername, password } = body;
 
-  if (!emailOrUsername || !password) {
+    if (!emailOrUsername || !password) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Email/username and password are required'
+        }),
+      };
+    }
+
+    // Find user
+    const user = await User.findOne({
+      $or: [
+        { email: emailOrUsername.toLowerCase().trim() },
+        { username: emailOrUsername.toLowerCase().trim() }
+      ]
+    });
+
+    if (!user) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Invalid credentials'
+        }),
+      };
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Invalid credentials'
+        }),
+      };
+    }
+
+    // Update last active
+    user.lastActive = new Date();
+    await user.save();
+
+    // Generate JWT
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET not configured');
+    }
+
+    const token = jwt.sign(
+      { userId: user._id },
+      jwtSecret,
+      { expiresIn: '7d' }
+    );
+
     return {
-      statusCode: 400,
+      statusCode: 200,
       headers,
       body: JSON.stringify({
-        success: false,
-        message: 'Email/username and password are required'
-      }),
-    };
-  }
-
-  // Find user
-  const user = await User.findOne({
-    $or: [
-      { email: emailOrUsername },
-      { username: emailOrUsername }
-    ]
-  });
-
-  if (!user) {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Invalid credentials'
-      }),
-    };
-  }
-
-  // Check password
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Invalid credentials'
-      }),
-    };
-  }
-
-  // Update last active
-  user.lastActive = new Date();
-  await user.save();
-
-  // Generate JWT
-  const token = jwt.sign(
-    { userId: user._id },
-    process.env.JWT_SECRET!,
-    { expiresIn: '7d' }
-  );
-
-  return {
-    statusCode: 200,
-    headers,
-    body: JSON.stringify({
-      success: true,
-      message: 'Login successful',
-      data: {
-        token,
-        user: {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          profilePicture: user.profilePicture,
-          ecoLevel: user.ecoLevel,
-          ecoPoints: user.ecoPoints,
-          currentStreak: user.currentStreak,
-          isPrivate: user.isPrivate
+        success: true,
+        message: 'Login successful',
+        data: {
+          token,
+          user: {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            profilePicture: user.profilePicture,
+            ecoLevel: user.ecoLevel,
+            ecoPoints: user.ecoPoints,
+            currentStreak: user.currentStreak,
+            isPrivate: user.isPrivate
+          }
         }
-      }
-    }),
-  };
+      }),
+    };
+  } catch (error) {
+    console.error('Login error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        message: 'Login failed',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Server error'
+      }),
+    };
+  }
 }
 
 async function handleGetMe(headers: any) {
-  const authHeader = headers.authorization || headers.Authorization;
-  const token = authHeader?.replace('Bearer ', '');
-
-  if (!token) {
-    return {
-      statusCode: 401,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Access denied. No token provided.'
-      }),
-    };
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    const authHeader = headers.authorization || headers.Authorization;
+    const token = authHeader?.replace('Bearer ', '');
+
+    if (!token) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Access denied. No token provided.'
+        }),
+      };
+    }
+
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET not configured');
+    }
+
+    const decoded = jwt.verify(token, jwtSecret) as { userId: string };
     const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) {
@@ -266,6 +325,7 @@ async function handleGetMe(headers: any) {
       }),
     };
   } catch (error) {
+    console.error('Get me error:', error);
     return {
       statusCode: 401,
       headers,

@@ -5,7 +5,7 @@ import { getJWTSecret } from '@/config/azure';
 import { AuthRequest } from '@/types';
 import logger from '@/utils/logger';
 
-export const authenticate = async (req:any , res: any, next: NextFunction) => {
+export const authenticate = async (req: any, res: any, next: NextFunction) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
@@ -27,13 +27,11 @@ export const authenticate = async (req:any , res: any, next: NextFunction) => {
       });
     }
 
-    // Update last active and streak
-    // Direct update instead of using updateStreak method
+    // Update last active and streak - Fixed property names
     const now = new Date();
-    user.lastActive = now;
+    const lastActive = user.lastActive || new Date(0);
     
     // Check if it's a new day since last login
-    const lastActive = user.lastActive || new Date(0);
     const isNewDay = 
       now.getDate() !== lastActive.getDate() || 
       now.getMonth() !== lastActive.getMonth() || 
@@ -45,13 +43,18 @@ export const authenticate = async (req:any , res: any, next: NextFunction) => {
       yesterday.setDate(yesterday.getDate() - 1);
       
       if (lastActive.toDateString() === yesterday.toDateString()) {
-        user.streaks.current= (user.streaks.current || 0) + 1;
+        user.currentStreak = (user.currentStreak || 0) + 1; // Fixed: use currentStreak
+        // Update longest streak if current is higher
+        if (user.currentStreak > (user.longestStreak || 0)) {
+          user.longestStreak = user.currentStreak;
+        }
       } else {
         // Reset streak if more than a day has passed
-        user.streaks.current = 1;
+        user.currentStreak = 1;
       }
     }
     
+    user.lastActive = now;
     await user.save();
 
     req.user = user.toObject();

@@ -1,4 +1,16 @@
 {
+  "name": "greenstagram",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "cd frontend && npm install && cd ../netlify/functions && npm install",
+    "build": "cd frontend && npm run build",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:functions": "netlify functions:serve",
+    "dev": "netlify dev",
+    "deploy": "npm run build && netlify deploy --prod",
+    "deploy:preview": "npm run build && netlify deploy"
+  },
   "dependencies": {
     "@netlify/functions": "^4.2.2",
     "@types/mongoose": "^5.11.96",
@@ -11,6 +23,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.9"
+    "@types/jsonwebtoken": "^9.0.9",
+    "netlify-cli": "^17.0.0"
   }
 }

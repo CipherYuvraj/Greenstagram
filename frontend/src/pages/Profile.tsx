@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+/// <reference types="vite/client" />
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,21 +8,16 @@ import {
   Calendar, 
   Users, 
   Award, 
-  TrendingUp, 
   Heart, 
   MessageCircle, 
   Share2, 
-  Settings, 
   UserPlus, 
   UserMinus,
   Grid3X3,
   Bookmark,
-  Camera,
   Edit,
   Leaf,
   Zap,
-  Target,
-  Trophy,
   ChevronLeft
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -31,48 +27,61 @@ import { toast } from 'react-hot-toast';
 const apiClient = {
   get: async (url: string) => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api${url}`, {
-      headers: {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json',
-      },
-    });
+    const apiUrl = import.meta.env.PROD ? '/.netlify/functions' : '/api';
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch(`${apiUrl}${url}`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('API Error:', response.status, errorData);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('API Request failed:', error);
+      throw error;
     }
-    
-    return response.json();
   },
   
   post: async (url: string, data?: any) => {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api${url}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': token ? `Bearer ${token}` : '',
-        'Content-Type': 'application/json',
-      },
-      body: data ? JSON.stringify(data) : undefined,
-    });
+    const apiUrl = import.meta.env.PROD ? '/.netlify/functions' : '/api';
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch(`${apiUrl}${url}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        },
+        body: data ? JSON.stringify(data) : undefined,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('API Error:', response.status, errorData);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('API Request failed:', error);
+      throw error;
     }
-    
-    return response.json();
   }
 };
 
 // Layout component from Home.tsx
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
@@ -129,7 +138,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 // Comment Component
 const CommentSection: React.FC<{ postId: string; comments: any[]; onAddComment: (content: string) => void }> = ({ 
-  postId, 
   comments, 
   onAddComment 
 }) => {
@@ -725,3 +733,4 @@ const Profile: React.FC = () => {
 };
 
 export default Profile;
+
