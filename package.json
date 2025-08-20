@@ -1,11 +1,16 @@
 {
   "dependencies": {
+    "@netlify/functions": "^4.2.2",
+    "@types/mongoose": "^5.11.96",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.16.0"
+    "mongodb": "^6.16.0",
+    "mongoose": "^8.17.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.9"
   }
 }

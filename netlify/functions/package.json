@@ -1,0 +1,11 @@
+{
+  "name": "greenstagram-functions",
+  "version": "1.0.0",
+  "dependencies": {
+    "@netlify/functions": "^2.4.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.0",
+    "axios": "^1.6.5"
+  }
+}

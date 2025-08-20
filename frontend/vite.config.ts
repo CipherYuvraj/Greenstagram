@@ -51,7 +51,15 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       proxy: {
-        '/api': { target: 'http://localhost:5000', changeOrigin: true },
+        '/api': { 
+          target: process.env.NODE_ENV === 'development' 
+            ? 'http://localhost:5000' 
+            : '/.netlify/functions',
+          changeOrigin: true,
+          rewrite: process.env.NODE_ENV === 'production' 
+            ? (path) => path.replace(/^\/api/, '') 
+            : undefined
+        },
         '/socket.io': { target: 'http://localhost:5000', ws: true }
       }
     },
@@ -71,7 +79,10 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      'process.env': env
+      'process.env': {
+        NODE_ENV: JSON.stringify(mode),
+        VITE_API_URL: JSON.stringify(env.VITE_API_URL || '/.netlify/functions')
+      }
     }
   };
 });

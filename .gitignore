@@ -138,3 +138,6 @@ docker-compose.yml
 *.tar.gz
 .env.backup
 .env.old
+
+# Local Netlify folder
+.netlify
