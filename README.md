@@ -15,7 +15,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
 [![Eco Score](https://img.shields.io/badge/Eco_Score-A+-00FF00)](https://eco-score.org)
 
-[🚀 Live Demo](https://greenstagram.azurewebsites.net) • [📖 Documentation](docs/) • [🐛 Report Bug](issues) • [💡 Request Feature](issues) • [🌿 Join Community](https://discord.gg/greenstagram)
+[🚀 Live Demo](https://greenstagram.netlify.app) • [📖 Documentation](docs/) • [🐛 Report Bug](issues) • [💡 Request Feature](issues)
 
 </div>
 
