@@ -35,7 +35,26 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      await login(data.emailOrUsername, data.password);
+      // Call your API to authenticate and get token and user data
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          emailOrUsername: data.emailOrUsername,
+          password: data.password,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+      
+      const { token, user } = await response.json();
+      
+      // Now call login with the correct arguments
+      login(token, user);
       toast.success('Welcome back to Greenstagram! 🌱');
       navigate('/');
     } catch (error: any) {

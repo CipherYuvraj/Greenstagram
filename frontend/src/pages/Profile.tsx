@@ -278,7 +278,7 @@ const Profile: React.FC = () => {
   const posts = postsData?.data?.posts || [];
   const isOwnProfile = currentUser?.username === username;
   const isFollowing = profileUser?.followers?.some((follower: any) => 
-    follower._id === currentUser?._id || follower === currentUser?._id
+    follower._id === currentUser?.id || follower === currentUser?.id
   );
 
   const handleFollow = () => {
@@ -642,7 +642,7 @@ const Profile: React.FC = () => {
                                 disabled={likeMutation.isPending}
                                 className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors"
                               >
-                                <Heart className={`w-5 h-5 ${post.likes?.some((like: any) => like._id === currentUser?._id || like === currentUser?._id) ? 'fill-red-500 text-red-500' : ''}`} />
+                                <Heart className={`w-5 h-5 ${post.likes?.some((like: any) => like._id === currentUser?.id || like === currentUser?.id) ? 'fill-red-500 text-red-500' : ''}`} />
                                 <span>{post.likes?.length || 0}</span>
                               </button>
 

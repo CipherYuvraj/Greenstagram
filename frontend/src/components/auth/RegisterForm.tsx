@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Leaf, UserPlus, Check } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
 
 interface RegisterFormData {
@@ -53,22 +54,14 @@ const RegisterForm: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: data.username,
-          email: data.email,
-          password: data.password,
-          confirmPassword: data.confirmPassword, // Include confirmPassword
-          bio: data.bio || '',
-          interests: selectedInterests
-        }),
+      const result = await apiService.register({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        bio: data.bio || '',
+        interests: selectedInterests
       });
-
-      const result = await response.json();
 
       if (result.success) {
         // Auto-login after successful registration
@@ -76,18 +69,11 @@ const RegisterForm: React.FC = () => {
         toast.success('Welcome to Greenstagram! 🌱');
         navigate('/');
       } else {
-        // Handle validation errors
-        if (result.errors && Array.isArray(result.errors)) {
-          result.errors.forEach((error: any) => {
-            toast.error(error.message);
-          });
-        } else {
-          toast.error(result.message || 'Registration failed');
-        }
+        toast.error(result.message || 'Registration failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      toast.error('Registration failed. Please try again.');
+      toast.error(error.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

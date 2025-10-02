@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Leaf, LogIn } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { apiService } from '../../services/api';
 import toast from 'react-hot-toast';
 
 interface LoginFormData {
@@ -13,7 +14,8 @@ interface LoginFormData {
 
 const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading, error } = useAuthStore();
+  const { login } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -23,12 +25,26 @@ const LoginForm: React.FC = () => {
   } = useForm<LoginFormData>();
 
   const onSubmit = async (data: LoginFormData) => {
+    setIsLoading(true);
+    
     try {
-      await login(data.emailOrUsername, data.password);
-      toast.success('Welcome back to Greenstagram! 🌿');
-      navigate('/dashboard');
+      const result = await apiService.login({
+        emailOrUsername: data.emailOrUsername,
+        password: data.password
+      });
+
+      if (result.success) {
+        login(result.data.token, result.data.user);
+        toast.success('Welcome back to Greenstagram! 🌿');
+        navigate('/');
+      } else {
+        toast.error(result.message || 'Login failed');
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Login failed');
+      console.error('Login error:', error);
+      toast.error(error.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -104,7 +120,7 @@ const LoginForm: React.FC = () => {
           </motion.div>
 
           {/* Error Message */}
-          {error && (
+          {/* {error && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -112,7 +128,7 @@ const LoginForm: React.FC = () => {
             >
               {error}
             </motion.div>
-          )}
+          )} */}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -216,3 +232,4 @@ const LoginForm: React.FC = () => {
 };
 
 export default LoginForm;
+

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, AuthState } from '../types';
-import { apiClient } from '../services/api';
+import { apiService } from '../services/api';
 
 interface AuthStore extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -30,7 +30,7 @@ export const useAuthStore = create<AuthStore>()(
       login: async (email: string, password: string) => {
         try {
           set({ loading: true });
-          const response = await apiClient.post('/auth/login', { email, password });
+          const response = await apiService.post('/auth/login', { email, password });
           const { token, user } = response.data.data;
           
           localStorage.setItem('token', token);
@@ -100,7 +100,7 @@ export const useAuthStore = create<AuthStore>()(
 
       refreshToken: async () => {
         try {
-          const response = await apiClient.post('/auth/refresh');
+          const response = await apiService.post('/auth/refresh');
           const { token } = response.data.data;
           
           localStorage.setItem('token', token);
@@ -117,7 +117,7 @@ export const useAuthStore = create<AuthStore>()(
           if (!token) return;
 
           set({ loading: true });
-          const response = await apiClient.get('/auth/me');
+          const response = await apiService.get('/auth/me');
           const { user } = response.data.data;
           
           set({ 

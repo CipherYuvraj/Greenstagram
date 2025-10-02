@@ -25,7 +25,24 @@ exports.handler = async (event, context) => {
     console.log('Simple Auth - Method:', method, 'Path:', path);
 
     // Parse request body
-    const body = event.body ? JSON.parse(event.body) : {};
+    let body = {};
+    if (event.body) {
+      try {
+        body = JSON.parse(event.body);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ 
+            success: false, 
+            message: 'Invalid JSON in request body' 
+          }),
+        };
+      }
+    }
+
+    console.log('Parsed body:', body);
 
     switch (`${method} ${path}`) {
       case 'POST /register':
@@ -36,7 +53,7 @@ exports.handler = async (event, context) => {
         return {
           statusCode: 404,
           headers,
-          body: JSON.stringify({ success: false, message: 'Endpoint not found' }),
+          body: JSON.stringify({ success: false, message: `Endpoint not found: ${method} ${path}` }),
         };
     }
   } catch (error) {
@@ -47,7 +64,8 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ 
         success: false, 
         message: 'Internal server error',
-        error: error.message
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       }),
     };
   }
@@ -55,10 +73,13 @@ exports.handler = async (event, context) => {
 
 async function handleRegister(body) {
   try {
-    const { username, email, password, confirmPassword } = body;
+    console.log('Register request body:', body);
+    
+    const { username, email, password, confirmPassword, bio, interests } = body;
 
     // Basic validation
     if (!username || !email || !password || !confirmPassword) {
+      console.log('Missing required fields');
       return {
         statusCode: 400,
         headers,
@@ -70,6 +91,7 @@ async function handleRegister(body) {
     }
 
     if (password !== confirmPassword) {
+      console.log('Passwords do not match');
       return {
         statusCode: 400,
         headers,
@@ -80,37 +102,93 @@ async function handleRegister(body) {
       };
     }
 
-    // For now, just return success without database
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key';
+    if (password.length < 6) {
+      console.log('Password too short');
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Password must be at least 6 characters long'
+        }),
+      };
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Invalid email format'
+        }),
+      };
+    }
+
+    // Username validation
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+    if (!usernameRegex.test(username)) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          message: 'Username must be 3-30 characters and contain only letters, numbers, and underscores'
+        }),
+      };
+    }
+
+    console.log('Validation passed, creating mock user');
+
+    // For now, just return success without database (mock implementation)
+    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-for-testing';
+    
+    // Hash password for demonstration (even though we're not storing it)
+    const hashedPassword = await bcrypt.hash(password, 12);
+    console.log('Password hashed successfully');
+
+    const mockUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const token = jwt.sign(
       { 
-        userId: 'mock-user-id',
-        username: username,
-        email: email 
+        userId: mockUserId,
+        username: username.toLowerCase().trim(),
+        email: email.toLowerCase().trim()
       },
       jwtSecret,
       { expiresIn: '7d' }
     );
 
+    console.log('JWT token generated successfully');
+
+    const responseData = {
+      success: true,
+      message: 'User registered successfully (mock)',
+      data: {
+        token,
+        user: {
+          id: mockUserId,
+          username: username.toLowerCase().trim(),
+          email: email.toLowerCase().trim(),
+          ecoLevel: 1,
+          ecoPoints: 50,
+          currentStreak: 0,
+          isPrivate: false,
+          bio: bio || '',
+          interests: interests || [],
+          createdAt: new Date().toISOString()
+        }
+      }
+    };
+
+    console.log('Registration successful, returning response');
+
     return {
       statusCode: 201,
       headers,
-      body: JSON.stringify({
-        success: true,
-        message: 'User registered successfully (mock)',
-        data: {
-          token,
-          user: {
-            id: 'mock-user-id',
-            username: username,
-            email: email,
-            ecoLevel: 1,
-            ecoPoints: 50,
-            currentStreak: 0,
-            isPrivate: false
-          }
-        }
-      }),
+      body: JSON.stringify(responseData),
     };
   } catch (error) {
     console.error('Registration error:', error);
@@ -120,7 +198,8 @@ async function handleRegister(body) {
       body: JSON.stringify({
         success: false,
         message: 'Registration failed',
-        error: error.message
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       }),
     };
   }
@@ -128,6 +207,8 @@ async function handleRegister(body) {
 
 async function handleLogin(body) {
   try {
+    console.log('Login request body:', body);
+    
     const { emailOrUsername, password } = body;
 
     if (!emailOrUsername || !password) {
@@ -141,37 +222,45 @@ async function handleLogin(body) {
       };
     }
 
-    // Mock login for testing
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key';
+    // Mock login for testing - in real implementation, check against database
+    console.log('Processing mock login');
+    
+    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-for-testing';
+    const mockUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const token = jwt.sign(
       { 
-        userId: 'mock-user-id',
+        userId: mockUserId,
         username: 'testuser',
-        email: 'test@example.com'
+        email: emailOrUsername.includes('@') ? emailOrUsername : 'test@example.com'
       },
       jwtSecret,
       { expiresIn: '7d' }
     );
 
+    const responseData = {
+      success: true,
+      message: 'Login successful (mock)',
+      data: {
+        token,
+        user: {
+          id: mockUserId,
+          username: 'testuser',
+          email: emailOrUsername.includes('@') ? emailOrUsername : 'test@example.com',
+          ecoLevel: 1,
+          ecoPoints: 50,
+          currentStreak: 0,
+          isPrivate: false
+        }
+      }
+    };
+
+    console.log('Login successful, returning response');
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        success: true,
-        message: 'Login successful (mock)',
-        data: {
-          token,
-          user: {
-            id: 'mock-user-id',
-            username: 'testuser',
-            email: 'test@example.com',
-            ecoLevel: 1,
-            ecoPoints: 50,
-            currentStreak: 0,
-            isPrivate: false
-          }
-        }
-      }),
+      body: JSON.stringify(responseData),
     };
   } catch (error) {
     console.error('Login error:', error);
@@ -181,7 +270,8 @@ async function handleLogin(body) {
       body: JSON.stringify({
         success: false,
         message: 'Login failed',
-        error: error.message
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       }),
     };
   }

@@ -3,26 +3,22 @@ import { persist } from 'zustand/middleware';
 import axios from 'axios';
 
 interface User {
-  _id: string;
+  id: string;
   username: string;
   email: string;
   profilePicture?: string;
-  bio?: string;
   ecoLevel: number;
   ecoPoints: number;
-  badges: string[];
-  streaks: {
-    current: number;
-    longest: number;
-    lastActivity?: string;
-  };
-  interests: string[];
-  followers: string[];
-  following: string[];
-  isActive: boolean;
-  lastLogin?: string;
-  createdAt: string;
-  updatedAt: string;
+  currentStreak: number;
+  isPrivate: boolean;
+  bio?: string;
+  interests?: string[];
+}
+
+interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
 }
 
 interface AuthState {
@@ -32,29 +28,13 @@ interface AuthState {
   error: string | null;
   
   // Actions
-  login: (emailOrUsername: string, password: string) => Promise<void>;
+  login: (token: string, user: User) => void;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
+  fetchProfile: () => Promise<void>;
   clearError: () => void;
   updateUser: (userData: Partial<User>) => void;
-  fetchProfile: () => Promise<void>;
 }
-
-interface RegisterData {
-  username: string;
-  email: string;
-  password: string;
-  bio?: string;
-  interests?: string[];
-}
-
-// Configure axios defaults
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
-  (process.env.NODE_ENV === 'production' 
-    ? 'https://greenstagram-backend.azurewebsites.net'
-    : 'http://localhost:5000');
-
-axios.defaults.baseURL = API_BASE_URL;
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -64,37 +44,10 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      login: async (emailOrUsername: string, password: string) => {
-        set({ isLoading: true, error: null });
-        
-        try {
-          const response = await axios.post('/api/auth/login', {
-            emailOrUsername,
-            password
-          });
-
-          const { user, token } = response.data.data;
-          
-          // Set axios default header for future requests
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
-          set({ 
-            user, 
-            token, 
-            isLoading: false,
-            error: null 
-          });
-
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || 'Login failed';
-          set({ 
-            error: errorMessage, 
-            isLoading: false,
-            user: null,
-            token: null 
-          });
-          throw new Error(errorMessage);
-        }
+      login: (token: string, user: User) => {
+        // Set axios default header for future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        set({ token, user, error: null });
       },
 
       register: async (userData: RegisterData) => {

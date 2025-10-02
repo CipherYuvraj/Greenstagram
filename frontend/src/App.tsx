@@ -6,8 +6,8 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
-import './App.css';
 import Debug from './pages/Debug';
+import './App.css';
 
 // Protected Route Component
 interface ProtectedRouteProps {
@@ -62,14 +62,11 @@ const App: React.FC = () => {
             },
           }}
         />
-               
-        
-        <Route 
-          path="/debug" 
-          element={<Debug />} 
-        />
         
         <Routes>
+          {/* Debug Route - Only for development */}
+          <Route path="/debug" element={<Debug />} />
+          
           {/* Public Routes */}
           <Route 
             path="/login" 
@@ -108,7 +105,7 @@ const App: React.FC = () => {
             } 
           />
           
-          {/* TODO: Add more protected routes */}
+          {/* Coming Soon Routes */}
           <Route 
             path="/explore" 
             element={
