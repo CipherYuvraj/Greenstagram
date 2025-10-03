@@ -26,10 +26,10 @@ const useNotificationStore = create<{
     try {
       zustandSet({ isLoading: true });
       
-      const response = await apiService.get('/api/notifications');
+      const response = await apiService.getNotifications();
       
-      const notifications = response.data.data.notifications || [];
-      const unreadCount = response.data.data.unreadCount || 0;
+      const notifications = response.data?.notifications || response.notifications || [];
+      const unreadCount = response.data?.unreadCount || response.unreadCount || 0;
       
       zustandSet({ 
         notifications, 
@@ -40,9 +40,8 @@ const useNotificationStore = create<{
     } catch (error: unknown) {
       console.warn('Failed to fetch notifications:', error);
       let errorMessage = 'Failed to fetch notifications';
-      if (typeof error === 'object' && error !== null && 'response' in (error as any)) {
-        const err = error as { response?: { data?: { message?: string } } };
-        errorMessage = err.response?.data?.message || errorMessage;
+      if (typeof error === 'object' && error !== null && 'message' in (error as any)) {
+        errorMessage = (error as { message: string }).message;
       }
       zustandSet({ 
         error: errorMessage, 
@@ -56,7 +55,7 @@ const useNotificationStore = create<{
   
   markAsRead: async (notificationId: any) => {
     try {
-      await apiService.put(`/api/notifications/${notificationId}/read`);
+      await apiService.markNotificationAsRead(notificationId);
       
       const notifications = get().notifications.map(notification => 
         notification._id === notificationId ? 
@@ -73,7 +72,7 @@ const useNotificationStore = create<{
   
   markAllAsRead: async () => {
     try {
-      await apiService.put('/api/notifications/read-all');
+      await apiService.markAllNotificationsAsRead();
       
       const notifications = get().notifications.map(notification => 
         ({ ...notification, read: true })
@@ -87,7 +86,7 @@ const useNotificationStore = create<{
   
   clearNotifications: async () => {
     try {
-      await apiService.delete('/api/notifications');
+      await apiService.clearNotifications();
       
       zustandSet({ notifications: [], unreadCount: 0 });
     } catch (error) {

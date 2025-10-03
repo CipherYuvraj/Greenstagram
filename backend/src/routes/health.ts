@@ -1,13 +1,15 @@
 import express from 'express';
 import { azureKeyVault } from '../config/azure';
 import mongoose from 'mongoose';
+import redis from '../config/redis';
 
 const router = express.Router();
 
 router.get('/', async (_req, res) => {
   try {
     const keyVaultHealth = await azureKeyVault.healthCheck();
-    
+    const redisHealth = await redis.checkHealth();
+
     const health = {
       status: 'OK',
       timestamp: new Date().toISOString(),
@@ -17,12 +19,24 @@ router.get('/', async (_req, res) => {
         database: {
           status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
           name: mongoose.connection.name
+        },
+        redis: {
+          connected: redisHealth.connected,
+          responsive: redisHealth.responsive,
+          latency: redisHealth.latency || null,
+          error: redisHealth.error || null
         }
       }
     };
 
-    const statusCode = keyVaultHealth.status === 'healthy' && 
-                      mongoose.connection.readyState === 1 ? 200 : 503;
+    // Decide HTTP status code
+    const statusCode =
+      keyVaultHealth.status === 'healthy' &&
+      mongoose.connection.readyState === 1 &&
+      redisHealth.connected &&
+      redisHealth.responsive
+        ? 200
+        : 503;
 
     res.status(statusCode).json({
       success: true,

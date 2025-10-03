@@ -146,7 +146,7 @@ app.get("/healthz", (_req, res) => {
     environment: process.env.NODE_ENV || "development",
     services: {
       database: "connected",
-      redis: redisClient?.isRedisAvailable() ? "connected" : "not connected",
+//      redis: redisClient?.isRedisAvailable() ? "connected" : "not connected",
       keyVault: process.env.AZURE_KEY_VAULT_URL ? 
         (azureKeyVault.isConnected() ? "connected" : "not connected") : 
         "not configured",

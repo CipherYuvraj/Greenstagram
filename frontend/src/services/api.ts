@@ -80,6 +80,19 @@ class ApiService {
     return this.makeRequest(`${endpoint}${queryString}`);
   }
 
+  async likePost(postId: string) {
+    const endpoint = isProduction ? `/posts/${postId}/like` : `/posts/${postId}/like`;
+    return this.makeRequest(endpoint, { method: 'POST' });
+  }
+
+  async addComment(postId: string, content: string) {
+    const endpoint = isProduction ? `/posts/${postId}/comment` : `/posts/${postId}/comment`;
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
   // Users endpoints
   async getUserProfile(username: string) {
     const endpoint = isProduction ? `/users/profile` : `/users/profile/${username}`;
@@ -123,6 +136,25 @@ class ApiService {
     return this.makeRequest(endpoint, {
       method: 'DELETE',
     });
+  // Notifications endpoints
+  async getNotifications() {
+    const endpoint = isProduction ? '/notifications' : '/notifications';
+    return this.makeRequest(endpoint);
+  }
+
+  async markNotificationAsRead(notificationId: string) {
+    const endpoint = isProduction ? `/notifications/${notificationId}/read` : `/notifications/${notificationId}/read`;
+    return this.makeRequest(endpoint, { method: 'PUT' });
+  }
+
+  async markAllNotificationsAsRead() {
+    const endpoint = isProduction ? '/notifications/read-all' : '/notifications/read-all';
+    return this.makeRequest(endpoint, { method: 'PUT' });
+  }
+
+  async clearNotifications() {
+    const endpoint = isProduction ? '/notifications' : '/notifications';
+    return this.makeRequest(endpoint, { method: 'DELETE' });
   }
 }
 

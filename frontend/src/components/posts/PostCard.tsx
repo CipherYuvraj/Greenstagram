@@ -42,12 +42,12 @@ const PostCard: React.FC<PostCardProps> = ({
   };
 
   const ecoCategories = {
-    'gardening': { icon: '🌱', color: 'text-green-600', bg: 'bg-green-100' },
-    'recycling': { icon: '♻️', color: 'text-blue-600', bg: 'bg-blue-100' },
-    'sustainable-living': { icon: '🌿', color: 'text-emerald-600', bg: 'bg-emerald-100' },
-    'renewable-energy': { icon: '☀️', color: 'text-yellow-600', bg: 'bg-yellow-100' },
-    'wildlife': { icon: '🦋', color: 'text-purple-600', bg: 'bg-purple-100' },
-    'climate-action': { icon: '🌍', color: 'text-indigo-600', bg: 'bg-indigo-100' }
+    'gardening': { icon: '🌱', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-100 dark:bg-green-900/30' },
+    'recycling': { icon: '♻️', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+    'sustainable-living': { icon: '🌿', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    'renewable-energy': { icon: '☀️', color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
+    'wildlife': { icon: '🦋', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
+    'climate-action': { icon: '🌍', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' }
   };
 
   return (
@@ -59,11 +59,11 @@ const PostCard: React.FC<PostCardProps> = ({
       transition={{ duration: 0.5, ease: 'easeOut' }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className={`bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 overflow-hidden group ${className}`}
+      className={`bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 dark:border-gray-700/50 overflow-hidden group transition-colors duration-300 ${className}`}
     >
       {/* Ambient glow effect */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-secondary-500/5 rounded-2xl"
+        className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-secondary-500/5 dark:from-primary-400/10 dark:via-transparent dark:to-secondary-400/10 rounded-2xl transition-colors duration-300"
         animate={{
           opacity: isHovered ? 1 : 0.5,
           scale: isHovered ? 1.02 : 1
@@ -105,19 +105,19 @@ const PostCard: React.FC<PostCardProps> = ({
 
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <h3 className="font-semibold text-gray-900">{post.userId.username}</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 transition-colors duration-300">{post.userId.username}</h3>
                 {post.userId.isVerified && (
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ delay: 0.2, type: 'spring', stiffness: 300 }}
                   >
-                    <Award className="w-4 h-4 text-blue-500" />
+                    <Award className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                   </motion.div>
                 )}
               </div>
               
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                 <Clock className="w-3 h-3" />
                 <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
                 
@@ -135,9 +135,9 @@ const PostCard: React.FC<PostCardProps> = ({
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
           >
-            <MoreHorizontal className="w-5 h-5 text-gray-400" />
+            <MoreHorizontal className="w-5 h-5 text-gray-400 dark:text-gray-500" />
           </motion.button>
         </div>
 
@@ -163,7 +163,7 @@ const PostCard: React.FC<PostCardProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-gray-800 leading-relaxed"
+          className="text-gray-800 dark:text-gray-200 leading-relaxed transition-colors duration-300"
         >
           {post.content}
         </motion.p>
@@ -183,7 +183,7 @@ const PostCard: React.FC<PostCardProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5 + index * 0.1 }}
                 whileHover={{ scale: 1.1 }}
-                className="text-primary-600 text-sm font-medium hover:text-primary-700 cursor-pointer"
+                className="text-primary-600 dark:text-primary-400 text-sm font-medium hover:text-primary-700 dark:hover:text-primary-300 cursor-pointer transition-colors duration-300"
               >
                 #{hashtag}
               </motion.span>
@@ -250,14 +250,14 @@ const PostCard: React.FC<PostCardProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="mx-4 mt-3 p-3 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg border border-primary-200"
+          className="mx-4 mt-3 p-3 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-lg border border-primary-200 dark:border-primary-700 transition-colors duration-300"
         >
           <div className="flex items-center space-x-2">
-            <Leaf className="w-4 h-4 text-primary-600" />
-            <span className="text-sm font-medium text-primary-800">
+            <Leaf className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+            <span className="text-sm font-medium text-primary-800 dark:text-primary-200 transition-colors duration-300">
               Challenge: {post.challenge.title}
             </span>
-            <span className="text-xs text-primary-600 bg-primary-100 px-2 py-0.5 rounded-full">
+            <span className="text-xs text-primary-600 dark:text-primary-300 bg-primary-100 dark:bg-primary-800/50 px-2 py-0.5 rounded-full transition-colors duration-300">
               +{post.challenge.points} points
             </span>
           </div>
@@ -265,7 +265,7 @@ const PostCard: React.FC<PostCardProps> = ({
       )}
 
       {/* Actions */}
-      <div className="px-4 py-3 border-t border-gray-100">
+      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 transition-colors duration-300">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1">
             {/* Like Button */}
@@ -275,8 +275,8 @@ const PostCard: React.FC<PostCardProps> = ({
               onClick={handleLike}
               className={`p-2 rounded-full transition-all duration-300 ${
                 isLiked 
-                  ? 'text-red-500 bg-red-50' 
-                  : 'text-gray-600 hover:text-red-500 hover:bg-red-50'
+                  ? 'text-red-500 bg-red-50 dark:bg-red-900/30' 
+                  : 'text-gray-600 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30'
               }`}
             >
               <motion.div
@@ -292,7 +292,7 @@ const PostCard: React.FC<PostCardProps> = ({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowComments(!showComments)}
-              className="p-2 rounded-full text-gray-600 hover:text-primary-500 hover:bg-primary-50 transition-all duration-300"
+              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-all duration-300"
             >
               <MessageCircle className="w-6 h-6" />
             </motion.button>
@@ -302,14 +302,14 @@ const PostCard: React.FC<PostCardProps> = ({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => onShare?.(post._id)}
-              className="p-2 rounded-full text-gray-600 hover:text-primary-500 hover:bg-primary-50 transition-all duration-300"
+              className="p-2 rounded-full text-gray-600 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-all duration-300"
             >
               <Share2 className="w-6 h-6" />
             </motion.button>
           </div>
 
           {/* Stats */}
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
+          <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
             <span>{post.likes.length} likes</span>
             <span>{post.comments.length} comments</span>
             {post.shares > 0 && <span>{post.shares} shares</span>}
@@ -356,10 +356,10 @@ const PostCard: React.FC<PostCardProps> = ({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="border-t border-gray-100 p-4 bg-gray-50/50"
+            className="border-t border-gray-100 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/50 transition-colors duration-300"
           >
             {/* Comments would go here */}
-            <p className="text-sm text-gray-500">Comments section coming soon...</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">Comments section coming soon...</p>
           </motion.div>
         )}
       </AnimatePresence>
