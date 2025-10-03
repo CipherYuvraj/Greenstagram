@@ -136,6 +136,8 @@ class ApiService {
     return this.makeRequest(endpoint, {
       method: 'DELETE',
     });
+  }
+
   // Notifications endpoints
   async getNotifications() {
     const endpoint = isProduction ? '/notifications' : '/notifications';

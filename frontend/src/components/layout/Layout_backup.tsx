@@ -1,17 +1,4 @@
-import React, const Layout: React.FC<LayoutProps> = ({
-  children,
-  showParticles = true,
-  particleTheme = 'eco',
-  className = ''
-}) => {
-  const { initializeTheme } = useThemeStore();
-  
-  useEffect(() => {
-    initializeTheme();
-  }, [initializeTheme]);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-green-900/20 transition-colors duration-300">{ect } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Header from './Header';
 import ParticleBackground from '../ui/ParticleBackground';
@@ -31,8 +18,14 @@ const Layout: React.FC<LayoutProps> = ({
   particleTheme = 'eco',
   className = ''
 }) => {
+  const { initializeTheme } = useThemeStore();
+  
+  useEffect(() => {
+    initializeTheme();
+  }, [initializeTheme]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-green-900/20 transition-colors duration-300">
       {/* Ambient background effects */}
       {showParticles && (
         <>
