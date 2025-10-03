@@ -1,8 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
-import { User } from '@/models/user';
-import { getJWTSecret } from '@/config/azure';
-import logger from '@/utils/logger';
+import { User } from '../models/user';
+import { getJWTSecret } from '../config/azure';
+import logger from '../utils/logger';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;

@@ -1,7 +1,7 @@
-import express, { Request, Response } from 'express';
-import Notification from '@/models/Notification';
-import { authenticate } from '@/middleware/auth';
-import logger from '@/utils/logger';
+import express from 'express';
+import Notification from '../models/Notification';
+import { authenticate } from '../middleware/auth';
+import logger from '../utils/logger';
 
 const router = express.Router();
 

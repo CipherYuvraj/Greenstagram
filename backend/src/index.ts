@@ -14,7 +14,7 @@ import { Server } from "socket.io";
 import "express-async-errors";
 
 import { connectDB } from "./config/database";
-import { connectRedis, getRedisStatus } from "./config/redis";
+import { connectRedis } from "./config/redis";
 import { initializeAzureKeyVault, azureKeyVault } from "./config/azure";
 import { initializeAppInsights } from "./config/applicationInsights";
 import { errorHandler } from "./middleware/errorHandler";

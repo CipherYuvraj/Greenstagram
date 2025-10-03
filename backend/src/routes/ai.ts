@@ -1,9 +1,9 @@
 import express, { Request, Response } from 'express';
 import axios from 'axios';
-import { authenticate } from '@/middleware/auth';
-import { getGroqAPIKey, getPlantNetAPIKey } from '@/config/azure';
-import { cacheGet, cacheSet } from '@/config/redis';
-import logger from '@/utils/logger';
+import { authenticate } from '../middleware/auth';
+import { getGroqAPIKey, getPlantNetAPIKey } from '../config/azure';
+import { cacheGet, cacheSet } from '../config/redis';
+import logger from '../utils/logger';
 
 const router = express.Router();
 
