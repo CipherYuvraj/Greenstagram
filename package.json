@@ -3,22 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
-    "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "cd frontend && npm run build",
-    "build:backend": "cd backend && npm run build",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "install:all": "cd frontend && npm install && cd ../netlify/functions && npm install",
+    "build": "cd frontend && npm run build",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend && npm run dev",
     "dev:functions": "netlify functions:serve",
-    "deploy": "node scripts/deploy.js",
-    "deploy:vercel": "node scripts/deploy.js vercel",
-    "deploy:netlify": "node scripts/deploy.js netlify",
-    "deploy:render": "node scripts/deploy.js render",
-    "deploy:azure": "node scripts/deploy.js azure",
-    "deploy:aws": "node scripts/deploy.js aws",
-    "deploy:frontend": "node scripts/deploy.js",
-    "deploy:backend": "node scripts/deploy.js",
+    "dev": "netlify dev",
+    "deploy": "npm run build && netlify deploy --prod",
     "deploy:preview": "npm run build && netlify deploy",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
@@ -26,8 +16,7 @@
     "typecheck": "cd frontend && tsc --noEmit",
     "prepare": "husky install",
     "health-check": "node scripts/health-check.js",
-    "validate:env": "node scripts/validate-env.js",
-    "setup:env": "node scripts/setup-env.js"
+    "validate:env": "node scripts/validate-env.js"
   },
   "dependencies": {
     "@netlify/functions": "^4.2.2",
@@ -44,7 +33,6 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
-    "concurrently": "^8.2.2",
     "dotenv": "^17.2.3",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
@@ -53,9 +41,6 @@
     "eslint-plugin-react-hooks": "^6.1.0",
     "husky": "^9.1.7",
     "netlify-cli": "^17.0.0",
-    "prettier": "^3.6.2",
-    "serverless": "^3.38.0",
-    "serverless-dotenv-plugin": "^6.0.0",
-    "serverless-offline": "^13.3.0"
+    "prettier": "^3.6.2"
   }
 }
