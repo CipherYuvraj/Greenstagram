@@ -159,7 +159,7 @@ router.post('/login', authLimiter, validateRequest(loginSchema), async (req: Req
 });
 
 // Get current user
-router.get('/me', authenticate, async (req: Request, res: Response) => {
+router.get('/me', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const authReq = req as unknown as AuthRequest;
     const user = await User.findById(authReq.user!._id)
@@ -180,7 +180,7 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
   }
 });
 // Refresh token
-router.post('/refresh', authenticate, async (req: Request, res: Response) => {
+router.post('/refresh', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const authReq = req as unknown as AuthRequest;
     const jwtSecret = await getJWTSecret();
