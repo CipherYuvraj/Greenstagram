@@ -2,13 +2,14 @@
 
 <div align="center">
 
-![Greenstagram Logo](https://via.placeholder.com/200x200/10b981/ffffff?text=🌱)
+![Greenstagram Logo](logo.png)
 
 **The Ultimate Eco-Focused Social Media Platform**
 
 *Where Environmental Consciousness Meets Social Connection*
 
-[![Build Status](https://github.com/yourusername/greenstagram/workflows/CI/badge.svg)](https://github.com/yourusername/greenstagram/actions)
+[![Build Status](https://github.com/CipherYuvraj/greenstagram/actions/workflows/azure-app-service.yml/badge.svg)](https://github.com/CipherYuvraj/greenstagram/actions)
+
 [![Azure Deployment](https://img.shields.io/badge/Azure-Deployed-0078d4)](https://greenstagram.azurewebsites.net)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Node.js Version](https://img.shields.io/badge/Node.js-18.x-brightgreen)](https://nodejs.org)
