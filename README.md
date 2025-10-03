@@ -11,7 +11,7 @@
 [![Build Status](https://github.com/CipherYuvraj/greenstagram/actions/workflows/azure-app-service.yml/badge.svg)](https://github.com/CipherYuvraj/greenstagram/actions)
 
 [![Azure Deployment](https://img.shields.io/badge/Azure-Deployed-0078d4)](https://greenstagram.azurewebsites.net)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
 [![Node.js Version](https://img.shields.io/badge/Node.js-18.x-brightgreen)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
 [![Eco Score](https://img.shields.io/badge/Eco_Score-A+-00FF00)](https://eco-score.org)
