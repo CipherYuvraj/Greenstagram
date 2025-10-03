@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { IBadge } from '@/types';
+import { IBadge } from '../types';
 import { io } from '../index';
 
 const badgeSchema = new Schema<IBadge>({

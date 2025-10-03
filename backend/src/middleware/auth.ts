@@ -1,9 +1,9 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '@/models/User';
-import { getJWTSecret } from '@/config/azure';
-import { AuthRequest } from '@/types';
-import logger from '@/utils/logger';
+import { User } from '../models/user';
+import { getJWTSecret } from '../config/azure';
+import { AuthRequest } from '../types';
+import logger from '../utils/logger';
 
 export const authenticate = async (req: any, res: any, next: NextFunction) => {
   try {

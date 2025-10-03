@@ -1,6 +1,6 @@
 import { DefaultAzureCredential } from '@azure/identity';
 import { SecretClient } from '@azure/keyvault-secrets';
-import logger from '@/utils/logger';
+import logger from '../utils/logger';
 
 let secretClient: SecretClient;
 

@@ -4,12 +4,10 @@
   "description": "Greenstagram backend API with Azure integration",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "tsx src/index.ts",
     "dev:watch": "tsx watch src/index.ts",
     "build": "npx tsc --build",
-    "clean": "rmdir /s /q dist",
-    "prebuild": "npm run clean",
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "echo \"No linting specified\" && exit 0",
     "env:check": "node debug-env.js",
@@ -38,6 +36,7 @@
     "morgan": "^1.10.0",
     "redis": "^5.5.6",
     "socket.io": "^4.8.1",
+    "tsconfig-paths": "^4.2.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {

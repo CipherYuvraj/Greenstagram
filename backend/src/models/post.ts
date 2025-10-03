@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IPost, IComment, IMedia } from '@/types';
+import { IPost, IComment, IMedia } from '../types';
 
 const mediaSchema = new Schema<IMedia>({
   type: { 

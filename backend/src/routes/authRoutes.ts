@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import { authService } from '../services/authService';
 import { authenticate } from '../middleware/authMiddleware';
-import {User} from '../models/User'; // Add the User model import
+import {User} from '../models/user'; // Add the User model import
 
 // Extend Request interface to include user property
 interface AuthenticatedRequest extends Request {

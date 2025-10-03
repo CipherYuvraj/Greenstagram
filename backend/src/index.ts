@@ -15,7 +15,6 @@ import "express-async-errors";
 
 import { connectDB } from "./config/database";
 import { connectRedis } from "./config/redis";
-import redisClient from "./config/redis";
 import { initializeAzureKeyVault, azureKeyVault } from "./config/azure";
 import { initializeAppInsights } from "./config/applicationInsights";
 import { errorHandler } from "./middleware/errorHandler";

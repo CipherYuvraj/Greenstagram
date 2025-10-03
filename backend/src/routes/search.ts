@@ -1,9 +1,9 @@
 import express from 'express';
-import Post from '@/models/Post';
-import {User} from '@/models/User';
-import {Challenge} from '@/models/Challenge';
-import { cacheGet, cacheSet } from '@/config/redis';
-import logger from '@/utils/logger';
+import Post from '../models/post';
+import {User} from '../models/user';
+import {Challenge} from '../models/challenge';
+import { cacheGet, cacheSet } from '../config/redis';
+import logger from '../utils/logger';
 
 const router = express.Router();
 
