@@ -1,11 +1,11 @@
 [build]
   base = "frontend"
-  publish = "dist"
+  publish = "build"
   command = "npm run build"
-  functions = "../netlify/functions"
 
 [build.environment]
   NODE_VERSION = "18"
+  VITE_API_URL = "https://api.greenstagram.netlify.app/.netlify/functions"
 
 [[redirects]]
   from = "/api/*"
@@ -18,10 +18,8 @@
   status = 200
 
 [functions]
+  directory = "backend/dist"
   node_bundler = "esbuild"
 
-[dev]
-  command = "npm run dev"
-  port = 3000
-  targetPort = 3000
-  framework = "#custom"
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"

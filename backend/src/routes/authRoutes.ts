@@ -14,7 +14,7 @@ interface AuthenticatedRequest extends Request {
 const router = express.Router();
 
 // Register a new user
-router.post('/register', async (req:any , res:any ) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
     const { username, email, password, bio, interests } = req.body;
     
@@ -39,7 +39,7 @@ router.post('/register', async (req:any , res:any ) => {
 });
 
 // Login user
-router.post('/login', async (req:any, res: any) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { emailOrUsername, password } = req.body;
     

@@ -11,7 +11,7 @@ import logger from '../utils/logger';
 const router = express.Router();
 
 // Get user public profile - public route
-router.get('/:username', async (req: express.Request, res: express.Response) => {
+router.get('/:username', async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({ username: req.params.username })
       .select('-password -email')
@@ -87,7 +87,7 @@ router.get('/:username', async (req: express.Request, res: express.Response) => 
 });
 
 // Get user profile with authentication status (for authenticated users)
-router.get('/:username/auth-view', authenticate, async (req: express.Request, res: express.Response) => {
+router.get('/:username/auth-view', authenticate, async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({ username: req.params.username })
       .select('-password -email')
@@ -171,7 +171,7 @@ router.get('/:username/auth-view', authenticate, async (req: express.Request, re
 });
 
 // Update profile
-router.put('/profile', authenticate, validateRequest(updateProfileSchema), async (req: express.Request, res: express.Response) => {
+router.put('/profile', authenticate, validateRequest(updateProfileSchema), async (req: Request, res: Response) => {
   try {
     const updateData = req.body;
     
@@ -205,7 +205,7 @@ router.put('/profile', authenticate, validateRequest(updateProfileSchema), async
 });
 
 // Follow/unfollow user
-router.post('/:id/follow', authenticate, async (req: express.Request, res: express.Response) => {
+router.post('/:id/follow', authenticate, async (req: Request, res: Response) => {
   try {
     const targetUserId = req.params.id;
     const currentUserId = (req as any).user._id;
@@ -287,7 +287,7 @@ router.post('/:id/follow', authenticate, async (req: express.Request, res: expre
 });
 
 // Get user's public posts - public route
-router.get('/:username/posts', async (req: express.Request, res: express.Response) => {
+router.get('/:username/posts', async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({ username: req.params.username });
     if (!user) {
@@ -336,7 +336,7 @@ router.get('/:username/posts', async (req: express.Request, res: express.Respons
 });
 
 // Get user's posts (including friends-only posts) - authenticated route
-router.get('/:username/auth-posts', authenticate, async (req: express.Request, res: express.Response) => {
+router.get('/:username/auth-posts', authenticate, async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({ username: req.params.username });
     if (!user) {
@@ -393,7 +393,7 @@ router.get('/:username/auth-posts', authenticate, async (req: express.Request, r
 });
 
 // Get suggested users
-router.get('/suggestions/for-you', authenticate, async (req: express.Request, res: express.Response) => {
+router.get('/suggestions/for-you', authenticate, async (req: Request, res: Response) => {
   try {
     const currentUser = await User.findById((req as any).user._id);
     const following = currentUser!.following;

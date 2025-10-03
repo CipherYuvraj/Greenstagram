@@ -1,11 +1,14 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
+import Explore from './pages/Explore';
+import CreatePost from './pages/CreatePost';
+import Settings from './pages/Settings';
 import Debug from './pages/Debug';
 import './App.css';
 
@@ -105,15 +108,45 @@ const App: React.FC = () => {
             } 
           />
           
-          {/* Coming Soon Routes */}
+          {/* Explore Route */}
           <Route 
             path="/explore" 
             element={
               <ProtectedRoute>
+                <Explore />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Create Post Route */}
+          <Route 
+            path="/create" 
+            element={
+              <ProtectedRoute>
+                <CreatePost />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Settings Route */}
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Additional Routes for Future Features */}
+          <Route 
+            path="/challenges" 
+            element={
+              <ProtectedRoute>
                 <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
                   <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">🔍 Explore Page</h1>
-                    <p className="text-gray-600">Coming soon! This page will show trending eco content.</p>
+                    <h1 className="text-2xl font-bold text-gray-800 mb-4">🏆 Eco Challenges</h1>
+                    <p className="text-gray-600">Coming soon! Join eco-friendly challenges and compete with the community.</p>
                   </div>
                 </div>
               </ProtectedRoute>
@@ -121,13 +154,27 @@ const App: React.FC = () => {
           />
           
           <Route 
-            path="/create" 
+            path="/notifications" 
             element={
               <ProtectedRoute>
                 <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
                   <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-4">📝 Create Post</h1>
-                    <p className="text-gray-600">Coming soon! Share your eco-friendly activities here.</p>
+                    <h1 className="text-2xl font-bold text-gray-800 mb-4">🔔 Notifications</h1>
+                    <p className="text-gray-600">Coming soon! Stay updated with your eco-community activities.</p>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/messages" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
+                  <div className="text-center">
+                    <h1 className="text-2xl font-bold text-gray-800 mb-4">💬 Messages</h1>
+                    <p className="text-gray-600">Coming soon! Connect with fellow eco-warriors through direct messages.</p>
                   </div>
                 </div>
               </ProtectedRoute>
@@ -142,12 +189,12 @@ const App: React.FC = () => {
                 <div className="text-center">
                   <h1 className="text-4xl font-bold text-gray-800 mb-4">🌿 404</h1>
                   <p className="text-gray-600 mb-4">This page seems to have gone green and disappeared!</p>
-                  <a 
-                    href="/" 
+                  <Link 
+                    to="/" 
                     className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200"
                   >
                     Return Home
-                  </a>
+                  </Link>
                 </div>
               </div>
             } 
@@ -159,5 +206,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-

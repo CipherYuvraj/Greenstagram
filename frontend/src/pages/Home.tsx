@@ -5,6 +5,7 @@ import { Sparkles, TrendingUp, Users, Leaf, LogOut, Plus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 import { Link, useNavigate } from 'react-router-dom';
+import ThemeToggle from '../components/ui/ThemeToggle';
 
 // Simple Layout component with navigation
 const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
@@ -20,13 +21,13 @@ const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 ${className || ''}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-green-900/20 dark:to-gray-800 transition-colors duration-300 ${className || ''}`}>
       {/* Navigation Header */}
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-green-100 shadow-lg"
+        className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-green-100 dark:border-gray-800 shadow-lg transition-colors duration-300"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -45,7 +46,7 @@ const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({
               >
                 <Leaf className="w-8 h-8 text-green-600" />
               </motion.div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent transition-colors duration-300">
                 Greenstagram
               </span>
             </Link>
@@ -61,21 +62,33 @@ const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({
               </Link>
               
               {/* Profile Button - Fixed to navigate to profile page */}
+                          <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              
               <Link 
                 to={`/profile/${user?.username || 'me'}`}
-                className="flex items-center space-x-2 hover:bg-gray-100 px-3 py-2 rounded-lg transition-all duration-200"
+                className="flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-lg transition-all duration-200"
               >
                 <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center">
                   <span className="text-white font-semibold text-sm">
                     {user?.username?.charAt(0).toUpperCase() || 'U'}
                   </span>
                 </div>
-                <span className="text-gray-700 font-medium">{user?.username || 'User'}</span>
+                <span className="text-gray-700 dark:text-gray-300 font-medium transition-colors duration-300">{user?.username || 'User'}</span>
               </Link>
 
               <button
                 onClick={handleLogout}
-                className="p-2 text-gray-600 hover:text-red-600 transition-colors"
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+
+              <button
+                onClick={handleLogout}
+                className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                 title="Logout"
               >
                 <LogOut className="w-5 h-5" />
@@ -94,7 +107,7 @@ const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({
 const PostCard: React.FC<{ post: any; onLike: (id: string) => void }> = ({ post, onLike }) => (
   <motion.div
     whileHover={{ y: -2 }}
-    className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-green-100 shadow-lg"
+    className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-green-100 dark:border-gray-700 shadow-lg transition-colors duration-300"
   >
     <div className="flex items-center space-x-3 mb-4">
       <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center">
@@ -103,32 +116,32 @@ const PostCard: React.FC<{ post: any; onLike: (id: string) => void }> = ({ post,
         </span>
       </div>
       <div>
-        <h3 className="font-semibold text-gray-800">@{post.userId.username}</h3>
-        <p className="text-sm text-gray-600">
+        <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-300">@{post.userId.username}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
           {new Date(post.createdAt).toLocaleDateString()}
         </p>
       </div>
       {post.userId.isVerified && (
-        <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+        <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs px-2 py-1 rounded-full transition-colors duration-300">
           ✓ Verified
         </div>
       )}
     </div>
     
-    <p className="text-gray-800 mb-4">{post.content}</p>
+    <p className="text-gray-800 dark:text-gray-200 mb-4 transition-colors duration-300">{post.content}</p>
     
     {post.hashtags && post.hashtags.length > 0 && (
       <div className="flex flex-wrap gap-2 mb-4">
         {post.hashtags.map((tag: string, index: number) => (
-          <span key={index} className="text-green-600 text-sm">#{tag}</span>
+          <span key={index} className="text-green-600 dark:text-green-400 text-sm transition-colors duration-300">#{tag}</span>
         ))}
       </div>
     )}
     
-    <div className="flex items-center space-x-6 text-gray-600">
+    <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400 transition-colors duration-300">
       <button 
         onClick={() => onLike(post._id)}
-        className="flex items-center space-x-2 hover:text-red-500 transition-colors"
+        className="flex items-center space-x-2 hover:text-red-500 dark:hover:text-red-400 transition-colors"
       >
         <span>❤️</span>
         <span>{post.likes.length}</span>

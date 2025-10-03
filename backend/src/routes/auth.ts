@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import {User} from '../models/user';
@@ -23,7 +23,7 @@ const authLimiter = rateLimit({
 });
 
 // Register
-router.post('/register', authLimiter, validateRequest(registerSchema), async (req:any, res:any) => {
+router.post('/register', authLimiter, validateRequest(registerSchema), async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, email, password } = req.body;
 
@@ -33,10 +33,11 @@ router.post('/register', authLimiter, validateRequest(registerSchema), async (re
     });
 
     if (existingUser) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: existingUser.email === email ? 'Email already registered' : 'Username already taken'
       });
+      return;
     }
 
     // Create new user
@@ -91,7 +92,7 @@ router.post('/register', authLimiter, validateRequest(registerSchema), async (re
 });
 
 // Login
-router.post('/login', authLimiter, validateRequest(loginSchema), async (req, res:any) => {
+router.post('/login', authLimiter, validateRequest(loginSchema), async (req: Request, res: Response): Promise<void> => {
   try {
     const { emailOrUsername, password } = req.body;
 
@@ -104,19 +105,21 @@ router.post('/login', authLimiter, validateRequest(loginSchema), async (req, res
     });
     
     if (!user) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Invalid credentials'
       });
+      return;
     }
 
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Invalid credentials'
       });
+      return;
     }
 
     // Update streak and last active
@@ -156,7 +159,7 @@ router.post('/login', authLimiter, validateRequest(loginSchema), async (req, res
 });
 
 // Get current user
-router.get('/me', authenticate, async (req, res) => {
+router.get('/me', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const authReq = req as unknown as AuthRequest;
     const user = await User.findById(authReq.user!._id)
@@ -177,7 +180,7 @@ router.get('/me', authenticate, async (req, res) => {
   }
 });
 // Refresh token
-router.post('/refresh', authenticate, async (req, res) => {
+router.post('/refresh', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const authReq = req as unknown as AuthRequest;
     const jwtSecret = await getJWTSecret();

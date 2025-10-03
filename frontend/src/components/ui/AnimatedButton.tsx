@@ -55,38 +55,38 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   const variants = {
     primary: {
-      bg: 'bg-gradient-to-r from-primary-500 to-primary-600',
-      hover: 'hover:from-primary-600 hover:to-primary-700',
-      glow: 'shadow-primary-500/25',
+      bg: 'bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700',
+      hover: 'hover:from-primary-600 hover:to-primary-700 dark:hover:from-primary-700 dark:hover:to-primary-800',
+      glow: 'shadow-primary-500/25 dark:shadow-primary-400/25',
       particle: '#10b981'
     },
     secondary: {
-      bg: 'bg-gradient-to-r from-secondary-500 to-secondary-600',
-      hover: 'hover:from-secondary-600 hover:to-secondary-700',
-      glow: 'shadow-secondary-500/25',
+      bg: 'bg-gradient-to-r from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700',
+      hover: 'hover:from-secondary-600 hover:to-secondary-700 dark:hover:from-secondary-700 dark:hover:to-secondary-800',
+      glow: 'shadow-secondary-500/25 dark:shadow-secondary-400/25',
       particle: '#22c55e'
     },
     eco: {
-      bg: 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500',
-      hover: 'hover:from-emerald-600 hover:via-green-600 hover:to-teal-600',
-      glow: 'shadow-emerald-500/25',
+      bg: 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 dark:from-emerald-600 dark:via-green-600 dark:to-teal-600',
+      hover: 'hover:from-emerald-600 hover:via-green-600 hover:to-teal-600 dark:hover:from-emerald-700 dark:hover:via-green-700 dark:hover:to-teal-700',
+      glow: 'shadow-emerald-500/25 dark:shadow-emerald-400/25',
       particle: '#059669'
     },
     danger: {
-      bg: 'bg-gradient-to-r from-red-500 to-red-600',
-      hover: 'hover:from-red-600 hover:to-red-700',
-      glow: 'shadow-red-500/25',
+      bg: 'bg-gradient-to-r from-red-500 to-red-600 dark:from-red-600 dark:to-red-700',
+      hover: 'hover:from-red-600 hover:to-red-700 dark:hover:from-red-700 dark:hover:to-red-800',
+      glow: 'shadow-red-500/25 dark:shadow-red-400/25',
       particle: '#ef4444'
     },
     outline: {
-      bg: 'bg-transparent',
-      hover: 'hover:bg-gray-100',
+      bg: 'bg-transparent border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300',
+      hover: 'hover:bg-gray-100 dark:hover:bg-gray-800',
       glow: 'shadow-none',
       particle: 'transparent'
     },
     ghost: {
-      bg: 'bg-transparent',
-      hover: 'hover:bg-gray-100',
+      bg: 'bg-transparent text-gray-700 dark:text-gray-300',
+      hover: 'hover:bg-gray-100 dark:hover:bg-gray-800',
       glow: 'shadow-none',
       particle: 'transparent'
     }

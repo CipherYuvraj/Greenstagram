@@ -26,7 +26,6 @@
       "node",
       "express",
       "jsonwebtoken",
-      "express-rate-limit",
       "express-validator"
     ],                                                  /* Include type definitions for dependencies. */
     "resolveJsonModule": true,                           /* Enable importing .json files. */

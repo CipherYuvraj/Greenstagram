@@ -1,4 +1,4 @@
-import { Request, RequestHandler } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import {authService} from '../services/authService';
 
 export interface AuthenticatedRequest extends Request {
@@ -8,15 +8,16 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export const authenticate: RequestHandler = async (
-  req: any,
-  res: any,
-  next: any
-) => {
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return res.status(401).json({ message: 'Authentication required' });
+      res.status(401).json({ message: 'Authentication required' });
+      return;
     }
     
     const decoded = await authService.verifyToken(token);

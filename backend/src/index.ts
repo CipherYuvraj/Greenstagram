@@ -79,12 +79,8 @@ const initializeApp = async () => {
     await connectDB();
     logger.info("MongoDB connected successfully");
     
-    // Try to connect to Redis, but don't fail if it's not available
-    try {
-      await connectRedis();
-    } catch (error) {
-      logger.warn("Redis connection failed, continuing without caching");
-    }
+    // Connect to Redis - errors are handled internally with graceful fallback
+    await connectRedis();
     
     // Initialize Application Insights if configured
     try {
@@ -137,6 +133,7 @@ app.use("/health", healthRoutes);
 // Simple health check directly in index.ts (in case /routes/health isn't used)
 app.get("/healthz", (_req, res) => {
   const appInsights = require('./config/applicationInsights');
+  const redisStatus = getRedisStatus();
   
   res.json({
     success: true,
@@ -145,7 +142,9 @@ app.get("/healthz", (_req, res) => {
     environment: process.env.NODE_ENV || "development",
     services: {
       database: "connected",
-//      redis: redisClient?.isRedisAvailable() ? "connected" : "not connected",
+      redis: redisStatus.configured ? 
+        (redisStatus.connected ? "connected" : "configured but not connected") : 
+        "not configured",
       keyVault: process.env.AZURE_KEY_VAULT_URL ? 
         (azureKeyVault.isConnected() ? "connected" : "not connected") : 
         "not configured",

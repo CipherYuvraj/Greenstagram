@@ -8,7 +8,7 @@ import logger from '../utils/logger';
 const router = express.Router();
 
 // Search endpoint with filters - public route
-router.get('/', async (req: express.Request, res: express.Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const {
       query,
@@ -166,7 +166,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 });
 
 // Search suggestions endpoint - public route
-router.get('/suggestions', async (req: express.Request, res: express.Response) => {
+router.get('/suggestions', async (req: Request, res: Response) => {
   try {
     const { q } = req.query as { q: string };
 
@@ -261,7 +261,7 @@ router.get('/suggestions', async (req: express.Request, res: express.Response) =
 });
 
 // Trending hashtags endpoint - public route
-router.get('/trending', async (_req: express.Request, res: express.Response) => {
+router.get('/trending', async (_req: Request, res: Response) => {
   try {
     const cacheKey = 'trending:hashtags';
     const cachedTrending = await cacheGet(cacheKey);
