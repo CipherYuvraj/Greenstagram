@@ -1,14 +1,14 @@
-import express from 'express';
-import Post from '@/models/Post';
-import {User} from '@/models/User';
-import {Challenge} from '@/models/Challenge';
+import express, { Request, Response } from 'express';
+import Post from '@/models/post';
+import { User } from '@/models/user';
+import {Challenge} from '@/models/challenge';
 import { cacheGet, cacheSet } from '@/config/redis';
 import logger from '@/utils/logger';
 
 const router = express.Router();
 
 // Search endpoint with filters - public route
-router.get('/', async (req: express.Request, res: express.Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const {
       query,
@@ -166,7 +166,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 });
 
 // Search suggestions endpoint - public route
-router.get('/suggestions', async (req: express.Request, res: express.Response) => {
+router.get('/suggestions', async (req: Request, res: Response) => {
   try {
     const { q } = req.query as { q: string };
 
@@ -261,7 +261,7 @@ router.get('/suggestions', async (req: express.Request, res: express.Response) =
 });
 
 // Trending hashtags endpoint - public route
-router.get('/trending', async (_req: express.Request, res: express.Response) => {
+router.get('/trending', async (_req: Request, res: Response) => {
   try {
     const cacheKey = 'trending:hashtags';
     const cachedTrending = await cacheGet(cacheKey);

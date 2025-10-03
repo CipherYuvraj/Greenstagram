@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { User, IUser } from '../models/User';
+import { User, IUser } from '../models/user';
 import { azureKeyVault } from '../config/azure';
 import { logger } from '../utils/logger';
 

@@ -1,7 +1,7 @@
-import express from 'express';
-import { Challenge } from '@/models/Challenge';
-import { User } from '@/models/User';
-import Post from '@/models/Post';
+import express, { Request, Response } from 'express';
+import { Challenge } from '@/models/challenge';
+import { User } from '@/models/user';
+import Post from '@/models/post';
 import Notification from '@/models/Notification';
 import { authenticate, requireAdmin } from '@/middleware/auth';
 import { validateRequest, createChallengeSchema } from '@/middleware/validation';
@@ -12,7 +12,7 @@ import logger from '@/utils/logger';
 const router = express.Router();
 
 // Get all active challenges (public route)
-router.get('/', async (req: express.Request, res: express.Response) => {
+router.get('/', async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
@@ -61,7 +61,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 });
 
 // Create challenge (admin only)
-router.post('/', authenticate, requireAdmin, validateRequest(createChallengeSchema), async (req: express.Request, res: express.Response) => {
+router.post('/', authenticate, requireAdmin, validateRequest(createChallengeSchema), async (req: Request, res: Response) => {
   try {
     const challengeData = {
       ...req.body,
@@ -88,7 +88,7 @@ router.post('/', authenticate, requireAdmin, validateRequest(createChallengeSche
 });
 
 // Get single challenge (public route)
-router.get('/:id', async (req: express.Request, res: express.Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
     try {
         const challenge = await Challenge.findById(req.params.id)
             .populate('createdBy', 'username profilePicture isVerified')
@@ -130,7 +130,7 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 });
 
 // Get user's challenge status - new authenticated route
-router.get('/:id/status', authenticate, async (req: express.Request, res: express.Response) => {
+router.get('/:id/status', authenticate, async (req: Request, res: Response) => {
     try {
         const challenge = await Challenge.findById(req.params.id);
 
@@ -173,7 +173,7 @@ router.get('/:id/status', authenticate, async (req: express.Request, res: expres
 });
 
 // Join challenge
-router.post('/:id/join', authenticate, async (req: express.Request, res: express.Response) => {
+router.post('/:id/join', authenticate, async (req: Request, res: Response) => {
   try {
     const challenge = await Challenge.findById(req.params.id);
     
@@ -251,7 +251,7 @@ router.post('/:id/join', authenticate, async (req: express.Request, res: express
 });
 
 // Leave challenge
-router.post('/:id/leave', authenticate, async (req: express.Request, res: express.Response) => {
+router.post('/:id/leave', authenticate, async (req: Request, res: Response) => {
   try {
     const challenge = await Challenge.findById(req.params.id);
     
@@ -297,7 +297,7 @@ router.post('/:id/leave', authenticate, async (req: express.Request, res: expres
 });
 
 // Get challenge leaderboard (public route)
-router.get('/:id/leaderboard', async (req: express.Request, res: express.Response) => {
+router.get('/:id/leaderboard', async (req: Request, res: Response) => {
   try {
     const challenge = await Challenge.findById(req.params.id)
       .populate('leaderboard.userId', 'username profilePicture ecoLevel isVerified');
@@ -332,7 +332,7 @@ router.get('/:id/leaderboard', async (req: express.Request, res: express.Respons
 });
 
 // Submit challenge post
-router.post('/:id/submit', authenticate, async (req: express.Request, res: express.Response) => {
+router.post('/:id/submit', authenticate, async (req: Request, res: Response) => {
   try {
     const { postId } = req.body;
     

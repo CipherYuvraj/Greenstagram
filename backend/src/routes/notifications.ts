@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import Notification from '@/models/Notification';
 import { authenticate } from '@/middleware/auth';
 import logger from '@/utils/logger';
@@ -6,7 +6,7 @@ import logger from '@/utils/logger';
 const router = express.Router();
 
 // Get user notifications
-router.get('/', authenticate, async (req: express.Request, res) => {
+router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -48,7 +48,7 @@ router.get('/', authenticate, async (req: express.Request, res) => {
 });
 
 // Mark notification as read
-router.put('/:id/read', authenticate, async (req: express.Request, res) => {
+router.put('/:id/read', authenticate, async (req: Request, res: Response) => {
   try {
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, userId: (req as any).user!._id },
@@ -77,7 +77,7 @@ router.put('/:id/read', authenticate, async (req: express.Request, res) => {
 });
 
 // Mark all notifications as read
-router.put('/read-all', authenticate, async (req: express.Request, res) => {
+router.put('/read-all', authenticate, async (req: Request, res: Response) => {
   try {
     await Notification.updateMany(
       { userId: (req as any).user!._id, read: false },

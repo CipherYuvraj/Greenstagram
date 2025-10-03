@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import axios from 'axios';
 import { authenticate } from '@/middleware/auth';
 import { getGroqAPIKey, getPlantNetAPIKey } from '@/config/azure';
@@ -8,7 +8,7 @@ import logger from '@/utils/logger';
 const router = express.Router();
 
 // Generate eco quote
-router.post('/quote', authenticate, async (req: express.Request, res) => {
+router.post('/quote', authenticate, async (req: Request, res: Response) => {
   try {
     const { theme = 'sustainability' } = req.body;
     
@@ -87,7 +87,7 @@ router.post('/quote', authenticate, async (req: express.Request, res) => {
 });
 
 // Plant identification
-router.post('/plant-identify', authenticate, async (req: express.Request, res: express.Response) => {
+router.post('/plant-identify', authenticate, async (req: Request, res: Response) => {
   try {
     const { imageUrl } = req.body;
     
@@ -240,7 +240,7 @@ const generateCareTips = (scientificName: string): string => {
 };
 
 // Get plant care reminder
-router.post('/plant-care', authenticate, async (req: express.Request, res) => {
+router.post('/plant-care', authenticate, async (req: Request, res: Response) => {
   try {
     const { plantType = 'general' } = req.body;
     

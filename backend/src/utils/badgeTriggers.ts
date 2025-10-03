@@ -1,6 +1,6 @@
-import  { User } from '@/models/User';
-import Post from '@/models/Post';
-import  { Challenge } from '@/models/Challenge';
+import { User } from '@/models/user';
+import Post from '@/models/post';
+import  { Challenge } from '@/models/challenge';
 import { IBadge } from '@/types';
 import logger from '@/utils/logger';
 
