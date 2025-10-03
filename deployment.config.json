@@ -1,0 +1,93 @@
+{
+  "deployment": {
+    "platforms": {
+      "vercel": {
+        "enabled": true,
+        "frontend": {
+          "projectName": "greenstagram-frontend",
+          "framework": "vite",
+          "buildCommand": "npm run build",
+          "outputDirectory": "build",
+          "nodeVersion": "18.x"
+        },
+        "backend": {
+          "projectName": "greenstagram-backend",
+          "runtime": "nodejs18.x",
+          "buildCommand": "npm run build",
+          "outputDirectory": "dist"
+        }
+      },
+      "netlify": {
+        "enabled": true,
+        "frontend": {
+          "buildCommand": "npm run build",
+          "publishDirectory": "build",
+          "functionsDirectory": "netlify/functions"
+        },
+        "backend": {
+          "buildCommand": "npm run build",
+          "functionsDirectory": "backend/dist"
+        }
+      },
+      "render": {
+        "enabled": true,
+        "frontend": {
+          "type": "static-site",
+          "buildCommand": "npm run build",
+          "publishDirectory": "build"
+        },
+        "backend": {
+          "type": "web-service",
+          "buildCommand": "npm run build",
+          "startCommand": "npm start",
+          "runtime": "node"
+        }
+      },
+      "azure": {
+        "enabled": true,
+        "frontend": {
+          "type": "static-web-app",
+          "appLocation": "frontend",
+          "outputLocation": "build"
+        },
+        "backend": {
+          "type": "web-app",
+          "runtime": "node:18-lts",
+          "appLocation": "backend"
+        }
+      },
+      "aws": {
+        "enabled": true,
+        "frontend": {
+          "type": "s3-cloudfront",
+          "bucket": "greenstagram-frontend",
+          "distributionId": "YOUR_DISTRIBUTION_ID"
+        },
+        "backend": {
+          "type": "lambda",
+          "runtime": "nodejs18.x",
+          "handler": "dist/index.handler"
+        }
+      }
+    }
+  },
+  "environment": {
+    "templates": {
+      "development": {
+        "NODE_ENV": "development",
+        "API_URL": "http://localhost:3001",
+        "FRONTEND_URL": "http://localhost:3000"
+      },
+      "staging": {
+        "NODE_ENV": "staging",
+        "API_URL": "https://api-staging.greenstagram.com",
+        "FRONTEND_URL": "https://staging.greenstagram.com"
+      },
+      "production": {
+        "NODE_ENV": "production",
+        "API_URL": "https://api.greenstagram.com",
+        "FRONTEND_URL": "https://greenstagram.com"
+      }
+    }
+  }
+}
