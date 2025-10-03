@@ -1,7 +1,7 @@
-import express from 'express';
-import Post from '@/models/Post';
-import { User }from '@/models/User';
-import {Challenge} from '@/models/Challenge';
+import express, { Request, Response } from 'express';
+import Post from '@/models/post';
+import { User }from '@/models/user';
+import {Challenge} from '@/models/challenge';
 import Notification from '@/models/Notification';
 import { authenticate} from '@/middleware/auth';
 import { validateRequest, createPostSchema } from '@/middleware/validation';
@@ -13,7 +13,7 @@ import logger from '@/utils/logger';
 const router = express.Router();
 
 // Create post
-router.post('/', authenticate, validateRequest(createPostSchema), async (req: express.Request, res: express.Response) => {
+router.post('/', authenticate, validateRequest(createPostSchema), async (req: Request, res: Response) => {
   try {
     const authReq = req as unknown as AuthRequest;
     const postData = {
@@ -69,7 +69,7 @@ router.post('/', authenticate, validateRequest(createPostSchema), async (req: ex
 });
 
 // Get feed posts
-router.get('/feed', authenticate, async (req: express.Request, res: express.Response) => {
+router.get('/feed', authenticate, async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -110,7 +110,7 @@ router.get('/feed', authenticate, async (req: express.Request, res: express.Resp
 });
 
 // Get trending posts
-router.get('/trending', async (req: express.Request, res: express.Response) => {
+router.get('/trending', async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
@@ -181,7 +181,7 @@ router.get('/trending', async (req: express.Request, res: express.Response) => {
 });
 
 // Like/unlike post
-router.post('/:id/like', authenticate, async (req: express.Request, res: express.Response) => {
+router.post('/:id/like', authenticate, async (req: Request, res: Response) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) {
@@ -239,7 +239,7 @@ router.post('/:id/like', authenticate, async (req: express.Request, res: express
 });
 
 // Add comment
-router.post('/:id/comment', authenticate, async (req: express.Request, res: express.Response) => {
+router.post('/:id/comment', authenticate, async (req: Request, res: Response) => {
   try {
     const { content } = req.body;
     
@@ -309,7 +309,7 @@ router.post('/:id/comment', authenticate, async (req: express.Request, res: expr
 });
 
 // Get single post
-router.get('/:id', async (req: express.Request, res: express.Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
     try {
         const post = await Post.findById(req.params.id)
             .populate('userId', 'username profilePicture isVerified')

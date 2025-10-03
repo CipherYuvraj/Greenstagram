@@ -1,19 +1,20 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '@/models/User';
+import { User } from '@/models/user';
 import { getJWTSecret } from '@/config/azure';
 import { AuthRequest } from '@/types';
 import logger from '@/utils/logger';
 
-export const authenticate = async (req: any, res: any, next: NextFunction) => {
+export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         success: false, 
         message: 'Access denied. No token provided.' 
       });
+      return;
     }
 
     const jwtSecret = await getJWTSecret();
@@ -21,10 +22,11 @@ export const authenticate = async (req: any, res: any, next: NextFunction) => {
     
     const user = await User.findById(decoded.userId).select('-password');
     if (!user) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         success: false, 
         message: 'Invalid token. User not found.' 
       });
+      return;
     }
 
     // Update last active and streak - Fixed property names
@@ -68,7 +70,7 @@ export const authenticate = async (req: any, res: any, next: NextFunction) => {
   }
 };
 
-export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextFunction) => {
+export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextFunction): Promise<void> => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
@@ -89,12 +91,13 @@ export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextF
   }
 };
 
-export const requireAdmin = (req: any, res: any, next: NextFunction) => {
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
   if (!req.user || !req.user.isVerified) {
-    return res.status(403).json({ 
+    res.status(403).json({ 
       success: false, 
       message: 'Admin access required.' 
     });
+    return;
   }
   next();
 };
