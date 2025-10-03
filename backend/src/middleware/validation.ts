@@ -8,7 +8,7 @@ export const validateRequest = (schema: Joi.ObjectSchema) => {
       return res.status(400).json({
         success: false,
         message: 'Validation error',
-        errors: error.details.map(detail => ({
+        errors: error.details.map((detail: { path: any[]; message: any; }) => ({
           field: detail.path.join('.'),
           message: detail.message
         }))
