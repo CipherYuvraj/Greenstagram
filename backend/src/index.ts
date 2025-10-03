@@ -32,6 +32,9 @@ import aiRoutes from "./routes/ai";
 import notificationRoutes from "./routes/notifications";
 import healthRoutes from "./routes/health";
 
+// import Security Middleware
+import { applySecurity } from './middleware/securityMiddleware';
+
 dotenv.config();
 
 const app = express();
@@ -72,6 +75,9 @@ app.use(
 );
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// securityMiddleware
+applySecurity(app);
 
 // Initialize connections
 const initializeApp = async () => {
