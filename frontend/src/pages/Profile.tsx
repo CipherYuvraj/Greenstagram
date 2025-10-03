@@ -30,20 +30,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-green-900/20 dark:to-gray-800 transition-colors duration-300">
       {/* Navigation Header */}
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-green-100 shadow-lg"
+        className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-green-100 dark:border-gray-800 shadow-lg transition-colors duration-300"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Back Button */}
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors"
+              className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
               <span>Back</span>
@@ -64,14 +64,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               >
                 <Leaf className="w-8 h-8 text-green-600" />
               </motion.div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent transition-colors duration-300">
                 Greenstagram
               </span>
             </div>
 
             {/* User Menu */}
             <div className="flex items-center space-x-2">
-              <span className="text-gray-700 font-medium">{user?.username}</span>
+              <span className="text-gray-700 dark:text-gray-300 font-medium transition-colors duration-300">{user?.username}</span>
             </div>
           </div>
         </div>
@@ -289,7 +289,7 @@ const Profile: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white/80 backdrop-blur-lg rounded-2xl p-8 border border-green-100 shadow-xl mb-8 relative overflow-hidden"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl p-8 border border-green-100 dark:border-gray-700 shadow-xl mb-8 relative overflow-hidden transition-colors duration-300"
         >
           {/* Background Pattern */}
           <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-emerald-500/5 to-teal-500/5" />
@@ -368,14 +368,14 @@ const Profile: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                  <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2 transition-colors duration-300">
                     @{profileUser.username}
                     {profileUser.isVerified && (
-                      <span className="ml-2 text-blue-500">✓</span>
+                      <span className="ml-2 text-blue-500 dark:text-blue-400">✓</span>
                     )}
                   </h1>
                   
-                  <div className="flex items-center justify-center md:justify-start space-x-4 text-gray-600 mb-4">
+                  <div className="flex items-center justify-center md:justify-start space-x-4 text-gray-600 dark:text-gray-400 mb-4 transition-colors duration-300">
                     {profileUser.location && (
                       <div className="flex items-center space-x-1">
                         <MapPin className="w-4 h-4" />
@@ -389,7 +389,7 @@ const Profile: React.FC = () => {
                   </div>
 
                   {profileUser.bio && (
-                    <p className="text-gray-700 mb-6 max-w-2xl leading-relaxed">
+                    <p className="text-gray-700 dark:text-gray-300 mb-6 max-w-2xl leading-relaxed transition-colors duration-300">
                       {profileUser.bio}
                     </p>
                   )}
@@ -403,7 +403,7 @@ const Profile: React.FC = () => {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.4 + index * 0.1 }}
-                          className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium"
+                          className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium transition-colors duration-300"
                         >
                           {interest}
                         </motion.span>
@@ -481,14 +481,14 @@ const Profile: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 + index * 0.1 }}
               whileHover={{ scale: 1.05, y: -5 }}
-              className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-green-100 shadow-lg"
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-green-100 dark:border-gray-700 shadow-lg transition-colors duration-300"
             >
               <div className={`inline-flex p-3 rounded-lg bg-gradient-to-r ${stat.color} mb-4`}>
                 <stat.icon className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">{stat.value.toLocaleString()}</p>
-                <p className="text-gray-600 text-sm">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 transition-colors duration-300">{stat.value.toLocaleString()}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm transition-colors duration-300">{stat.label}</p>
               </div>
             </motion.div>
           ))}
@@ -499,18 +499,18 @@ const Profile: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="bg-white/80 backdrop-blur-sm rounded-xl border border-green-100 shadow-lg overflow-hidden"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl border border-green-100 dark:border-gray-700 shadow-lg overflow-hidden transition-colors duration-300"
         >
           {/* Tab Headers */}
-          <div className="flex border-b border-green-100">
+          <div className="flex border-b border-green-100 dark:border-gray-700">
             {tabs.map((tab) => (
               <motion.button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex-1 flex items-center justify-center space-x-2 py-4 px-6 transition-all duration-300 ${
                   activeTab === tab.key
-                    ? 'text-green-600 border-b-2 border-green-500 bg-green-50'
-                    : 'text-gray-600 hover:text-green-600 hover:bg-green-25'
+                    ? 'text-green-600 dark:text-green-400 border-b-2 border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/30'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-25 dark:hover:bg-gray-700/50'
                 }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -548,7 +548,7 @@ const Profile: React.FC = () => {
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: index * 0.1 }}
-                          className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm"
+                          className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm transition-colors duration-300"
                         >
                           {/* Post Header */}
                           <div className="flex items-center space-x-3 mb-4">
@@ -558,15 +558,15 @@ const Profile: React.FC = () => {
                               </span>
                             </div>
                             <div>
-                              <h3 className="font-semibold text-gray-800">@{profileUser.username}</h3>
-                              <p className="text-sm text-gray-600">
+                              <h3 className="font-semibold text-gray-800 dark:text-gray-200 transition-colors duration-300">@{profileUser.username}</h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">
                                 {new Date(post.createdAt).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
 
                           {/* Post Content */}
-                          <p className="text-gray-800 mb-4">{post.content}</p>
+                          <p className="text-gray-800 dark:text-gray-200 mb-4 transition-colors duration-300">{post.content}</p>
 
                           {/* Post Media */}
                           {post.media && post.media.length > 0 && (
@@ -583,12 +583,12 @@ const Profile: React.FC = () => {
                           )}
 
                           {/* Post Actions */}
-                          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700 transition-colors duration-300">
                             <div className="flex items-center space-x-6">
                               <button
                                 onClick={() => handleLike(post._id)}
                                 disabled={likeMutation.isPending}
-                                className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors"
+                                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                               >
                                 <Heart className={`w-5 h-5 ${post.likes?.some((like: any) => like._id === currentUser?.id || like === currentUser?.id) ? 'fill-red-500 text-red-500' : ''}`} />
                                 <span>{post.likes?.length || 0}</span>
@@ -600,7 +600,7 @@ const Profile: React.FC = () => {
                                 onAddComment={(content) => handleAddComment(post._id, content)}
                               />
 
-                              <div className="flex items-center space-x-2 text-gray-600">
+                              <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 transition-colors duration-300">
                                 <Share2 className="w-5 h-5" />
                                 <span>{post.shares || 0}</span>
                               </div>

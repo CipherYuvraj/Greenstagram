@@ -8,6 +8,7 @@ import { Eye, EyeOff, Leaf, Mail, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import AnimatedButton from '../components/ui/AnimatedButton';
+import ThemeToggle from '../components/ui/ThemeToggle';
 import ParticleBackground from '../components/ui/ParticleBackground';
 import FloatingElements from '../components/ui/FloatingElements';
 
@@ -65,7 +66,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-green-900/20 dark:to-gray-800 relative overflow-hidden transition-colors duration-300">
       {/* Background Effects */}
       <ParticleBackground 
         particleCount={100} 
@@ -73,6 +74,11 @@ const Login: React.FC = () => {
         interactive={true}
       />
       <FloatingElements count={30} theme="nature" />
+
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-6 right-6 z-20">
+        <ThemeToggle />
+      </div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
@@ -123,10 +129,10 @@ const Login: React.FC = () => {
               ))}
             </motion.div>
             
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-emerald-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 via-secondary-600 to-emerald-600 dark:from-primary-400 dark:via-secondary-400 dark:to-emerald-400 bg-clip-text text-transparent transition-colors duration-300">
               Greenstagram
             </h1>
-            <p className="text-gray-600 mt-2">Welcome back to your eco-journey</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-2 transition-colors duration-300">Welcome back to your eco-journey</p>
           </motion.div>
 
           {/* Login Form */}
@@ -134,10 +140,10 @@ const Login: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/50 p-8 relative overflow-hidden"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/50 dark:border-gray-700/50 p-8 relative overflow-hidden transition-colors duration-300"
           >
             {/* Form glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 via-transparent to-secondary-500/5 rounded-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 via-transparent to-secondary-500/5 dark:from-primary-400/10 dark:via-transparent dark:to-secondary-400/10 rounded-2xl transition-colors duration-300" />
             
             <div className="relative z-10">
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -147,16 +153,16 @@ const Login: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
                     Email or Username
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5 transition-colors duration-300" />
                     <input
                       {...register('emailOrUsername')}
                       type="text"
-                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 bg-white/50 backdrop-blur-sm ${
-                        errors.emailOrUsername ? 'border-red-300' : 'border-gray-300'
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-300 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                        errors.emailOrUsername ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="Enter your email or username"
                     />
@@ -181,23 +187,23 @@ const Login: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.6 }}
                 >
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
                     Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5 transition-colors duration-300" />
                     <input
                       {...register('password')}
                       type={showPassword ? 'text' : 'password'}
-                      className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 bg-white/50 backdrop-blur-sm ${
-                        errors.password ? 'border-red-300' : 'border-gray-300'
+                      className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-all duration-300 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
+                        errors.password ? 'border-red-300 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
                       placeholder="Enter your password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-300"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -226,13 +232,13 @@ const Login: React.FC = () => {
                   <label className="flex items-center">
                     <input
                       type="checkbox"
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 dark:focus:ring-primary-400 dark:bg-gray-700 transition-colors duration-300"
                     />
-                    <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">Remember me</span>
                   </label>
                   <Link
                     to="/forgot-password"
-                    className="text-sm text-primary-600 hover:text-primary-700 transition-colors duration-200"
+                    className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200"
                   >
                     Forgot password?
                   </Link>
@@ -266,10 +272,10 @@ const Login: React.FC = () => {
                 transition={{ delay: 0.9 }}
                 className="mt-6 text-center"
               >
-                <span className="text-gray-600">Don't have an account? </span>
+                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-300">Don't have an account? </span>
                 <Link
                   to="/register"
-                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors duration-200"
+                  className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors duration-200"
                 >
                   Join the eco-community
                 </Link>
@@ -292,10 +298,10 @@ const Login: React.FC = () => {
               <motion.div
                 key={feature.label}
                 whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-white/50"
+                className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-lg p-4 border border-white/50 dark:border-gray-700/50 transition-colors duration-300"
               >
                 <div className="text-2xl mb-2">{feature.icon}</div>
-                <div className="text-sm text-gray-600">{feature.label}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300">{feature.label}</div>
               </motion.div>
             ))}
           </motion.div>
