@@ -1,0 +1,14 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# # Run linting
+# npm run lint
+
+# # Run type checking
+# npm run typecheck
+
+# # Run format check
+# npm run format
+
+# # Validate environment variables
+# npm run validate:env

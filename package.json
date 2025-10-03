@@ -9,7 +9,14 @@
     "dev:functions": "netlify functions:serve",
     "dev": "netlify dev",
     "deploy": "npm run build && netlify deploy --prod",
-    "deploy:preview": "npm run build && netlify deploy"
+    "deploy:preview": "npm run build && netlify deploy",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "typecheck": "cd frontend && tsc --noEmit",
+    "prepare": "husky install",
+    "health-check": "node scripts/health-check.js",
+    "validate:env": "node scripts/validate-env.js"
   },
   "dependencies": {
     "@netlify/functions": "^4.2.2",
@@ -24,6 +31,16 @@
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.9",
-    "netlify-cli": "^17.0.0"
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.36.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^6.1.0",
+    "husky": "^9.1.7",
+    "netlify-cli": "^17.0.0",
+    "prettier": "^3.6.2"
   }
 }
