@@ -1,18 +1,15 @@
-import hpp from 'hpp';
-import csurf from 'csurf';
-import cookieParser from 'cookie-parser';
+import hpp from 'hpp'
+import csurf from 'csurf'
+import cookieParser from 'cookie-parser'
 
-import { Application } from 'express';
+import { Application } from 'express'
 
-
-export const applySecurity = (app:Application)=>{
-
-    app.use(cookieParser());
-
-    app.use(hpp());
-
-    app.use(csurf({
-        cookie:true
-    }));
-
+export const applySecurity = (app: Application) => {
+  app.use(cookieParser())
+  app.use(hpp())
+  app.use(
+    csurf({
+      cookie: true,
+    })
+  )
 }
