@@ -1,19 +1,20 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import Notification from '../models/Notification';
 import { authenticate } from '../middleware/auth';
+import { AuthRequest } from '../types';
 import logger from '../utils/logger';
 
 const router = express.Router();
 
 // Get user notifications
-router.get('/', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const type = req.query.type as string;
     const skip = (page - 1) * limit;
 
-    const query: any = { userId: (req as any).user!._id };
+    const query: any = { userId: req.user!._id };
     if (type) {
       query.type = type;
     }
@@ -21,10 +22,12 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     const notifications = await Notification.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .populate('relatedUser', 'username avatar')
+      .populate('relatedPost', 'content media');
 
     const unreadCount = await Notification.countDocuments({
-      userId:(req as any).user!._id,
+      userId: req.user!._id,
       read: false
     });
 
