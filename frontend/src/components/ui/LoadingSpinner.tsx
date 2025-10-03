@@ -22,10 +22,10 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   };
 
   const colorClasses = {
-    primary: 'border-primary-500',
-    secondary: 'border-secondary-500',
-    eco: 'border-green-500',
-    white: 'border-white'
+    primary: 'border-primary-500 dark:border-primary-400',
+    secondary: 'border-secondary-500 dark:border-secondary-400',
+    eco: 'border-green-500 dark:border-green-400',
+    white: 'border-white dark:border-gray-200'
   };
 
   return (
@@ -39,7 +39,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-sm text-gray-600"
+          className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-300"
         >
           {text}
         </motion.p>

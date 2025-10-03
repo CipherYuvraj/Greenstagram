@@ -49,11 +49,11 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-gray-900 dark:via-green-900/20 dark:to-gray-800 flex items-center justify-center px-4 transition-colors duration-300">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute -top-10 -left-10 w-20 h-20 bg-green-200 rounded-full opacity-20"
+          className="absolute -top-10 -left-10 w-20 h-20 bg-green-200 dark:bg-green-600 rounded-full opacity-20 dark:opacity-10"
           animate={{
             y: [0, -20, 0],
             x: [0, 10, 0],
@@ -65,7 +65,7 @@ const LoginForm: React.FC = () => {
           }}
         />
         <motion.div
-          className="absolute top-1/3 -right-10 w-16 h-16 bg-emerald-300 rounded-full opacity-20"
+          className="absolute top-1/3 -right-10 w-16 h-16 bg-emerald-300 dark:bg-emerald-600 rounded-full opacity-20 dark:opacity-10"
           animate={{
             y: [0, 15, 0],
             x: [0, -15, 0],
@@ -77,7 +77,7 @@ const LoginForm: React.FC = () => {
           }}
         />
         <motion.div
-          className="absolute bottom-1/4 left-1/4 w-12 h-12 bg-teal-200 rounded-full opacity-20"
+          className="absolute bottom-1/4 left-1/4 w-12 h-12 bg-teal-200 dark:bg-teal-600 rounded-full opacity-20 dark:opacity-10"
           animate={{
             y: [0, -10, 0],
             x: [0, 20, 0],
@@ -96,7 +96,7 @@ const LoginForm: React.FC = () => {
         transition={{ duration: 0.6 }}
         className="w-full max-w-md"
       >
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-green-100">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-green-100 dark:border-gray-700 transition-colors duration-300">
           {/* Logo and Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -113,10 +113,10 @@ const LoginForm: React.FC = () => {
                 <Leaf className="w-8 h-8 text-white" />
               </motion.div>
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
               Greenstagram
             </h1>
-            <p className="text-gray-600 mt-2">Welcome back to your eco journey!</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-2 transition-colors duration-300">Welcome back to your eco journey!</p>
           </motion.div>
 
           {/* Error Message */}
@@ -137,7 +137,7 @@ const LoginForm: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
             >
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
                 Email or Username
               </label>
               <input
@@ -145,7 +145,7 @@ const LoginForm: React.FC = () => {
                   required: 'Email or username is required'
                 })}
                 type="text"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 placeholder="Enter your email or username"
               />
               {errors.emailOrUsername && (
@@ -158,7 +158,7 @@ const LoginForm: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
             >
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
                 Password
               </label>
               <div className="relative">
@@ -167,13 +167,13 @@ const LoginForm: React.FC = () => {
                     required: 'Password is required'
                   })}
                   type={showPassword ? 'text' : 'password'}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-transparent transition-all duration-200 bg-white/50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -215,11 +215,11 @@ const LoginForm: React.FC = () => {
             transition={{ delay: 0.6, duration: 0.5 }}
             className="mt-6 text-center"
           >
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300 transition-colors duration-300">
               Don't have an account?{' '}
               <Link
                 to="/register"
-                className="text-green-600 hover:text-green-700 font-medium transition-colors"
+                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium transition-colors"
               >
                 Join the eco community
               </Link>

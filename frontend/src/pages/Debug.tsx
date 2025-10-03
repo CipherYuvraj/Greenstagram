@@ -38,14 +38,14 @@ const Debug: React.FC = () => {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Netlify Functions Debug</h1>
+    <div className="p-8 max-w-4xl mx-auto min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white transition-colors duration-300">Netlify Functions Debug</h1>
       
       <div className="space-y-4 mb-8">
         <button
           onClick={() => testFunction('/test')}
           disabled={loading}
-          className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+          className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-4 py-2 rounded mr-2 transition-colors duration-200"
         >
           Test Function
         </button>
@@ -58,7 +58,7 @@ const Debug: React.FC = () => {
             confirmPassword: 'password123'
           })}
           disabled={loading}
-          className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+          className="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white px-4 py-2 rounded mr-2 transition-colors duration-200"
         >
           Test Register
         </button>
@@ -69,14 +69,14 @@ const Debug: React.FC = () => {
             password: 'password123'
           })}
           disabled={loading}
-          className="bg-purple-500 text-white px-4 py-2 rounded mr-2"
+          className="bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white px-4 py-2 rounded mr-2 transition-colors duration-200"
         >
           Test Login
         </button>
         
         <button
           onClick={() => setTestResults([])}
-          className="bg-red-500 text-white px-4 py-2 rounded"
+          className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white px-4 py-2 rounded transition-colors duration-200"
         >
           Clear Results
         </button>
@@ -84,12 +84,12 @@ const Debug: React.FC = () => {
 
       <div className="space-y-4">
         {testResults.map((result, index) => (
-          <div key={index} className="border p-4 rounded bg-gray-50">
-            <div className="font-bold">
+          <div key={index} className="border border-gray-200 dark:border-gray-700 p-4 rounded bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
+            <div className="font-bold text-gray-900 dark:text-white transition-colors duration-300">
               {result.method} {result.url} - Status: {result.status}
             </div>
-            <div className="text-sm text-gray-600 mb-2">{result.timestamp}</div>
-            <pre className="bg-black text-green-400 p-2 rounded text-xs overflow-auto">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mb-2 transition-colors duration-300">{result.timestamp}</div>
+            <pre className="bg-black dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 rounded text-xs overflow-auto transition-colors duration-300">
               {JSON.stringify(result.result, null, 2)}
             </pre>
           </div>
