@@ -164,20 +164,17 @@ export const connectRedis = async (): Promise<void> => {
     // Event handlers for connection lifecycle
     redisClient.on('error', (err: any) => {
       // Reduce log noise - only log unique or important errors
-      if (err.code === 'ECONNREFUSED') {
-        if (connectionAttempts <= 1) {
-          // Only log on first attempt to reduce noise
+      if (connectionAttempts <= 1) {
+        // Only log on first attempt to reduce noise
+        if (err.code === 'ECONNREFUSED') {
           logger.error(
             `Redis: Connection refused at ${err.address || 'unknown address'}`
           );
-        }
-      } else if (err.code === 'ETIMEDOUT') {
-        logger.error('Redis: Connection timeout');
-      } else if (err.code === 'ENOTFOUND') {
-        logger.error(`Redis: Host not found - ${err.hostname}`);
-      } else {
-        // Log other errors only once
-        if (connectionAttempts <= 1) {
+        } else if (err.code === 'ETIMEDOUT') {
+          logger.error('Redis: Connection timeout');
+        } else if (err.code === 'ENOTFOUND') {
+          logger.error(`Redis: Host not found - ${err.hostname}`);
+        } else {
           logger.error(`Redis: Error - ${err.message}`);
         }
       }
