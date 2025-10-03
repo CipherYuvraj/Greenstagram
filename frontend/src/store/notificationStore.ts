@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiClient } from '../services/api';
+import { apiService } from '../services/api';
 
 type Notification = {
   _id: string;
@@ -26,7 +26,7 @@ const useNotificationStore = create<{
     try {
       zustandSet({ isLoading: true });
       
-      const response = await apiClient.get('/api/notifications');
+      const response = await apiService.get('/api/notifications');
       
       const notifications = response.data.data.notifications || [];
       const unreadCount = response.data.data.unreadCount || 0;
@@ -56,7 +56,7 @@ const useNotificationStore = create<{
   
   markAsRead: async (notificationId: any) => {
     try {
-      await apiClient.put(`/api/notifications/${notificationId}/read`);
+      await apiService.put(`/api/notifications/${notificationId}/read`);
       
       const notifications = get().notifications.map(notification => 
         notification._id === notificationId ? 
@@ -73,7 +73,7 @@ const useNotificationStore = create<{
   
   markAllAsRead: async () => {
     try {
-      await apiClient.put('/api/notifications/read-all');
+      await apiService.put('/api/notifications/read-all');
       
       const notifications = get().notifications.map(notification => 
         ({ ...notification, read: true })
@@ -87,7 +87,7 @@ const useNotificationStore = create<{
   
   clearNotifications: async () => {
     try {
-      await apiClient.delete('/api/notifications');
+      await apiService.delete('/api/notifications');
       
       zustandSet({ notifications: [], unreadCount: 0 });
     } catch (error) {

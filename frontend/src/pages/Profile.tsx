@@ -21,62 +21,8 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { apiService } from '../services/api';
 import { toast } from 'react-hot-toast';
-
-// API service
-const apiClient = {
-  get: async (url: string) => {
-    const token = localStorage.getItem('token');
-    const apiUrl = import.meta.env.PROD ? '/.netlify/functions' : '/api';
-    
-    try {
-      const response = await fetch(`${apiUrl}${url}`, {
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('API Error:', response.status, errorData);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('API Request failed:', error);
-      throw error;
-    }
-  },
-  
-  post: async (url: string, data?: any) => {
-    const token = localStorage.getItem('token');
-    const apiUrl = import.meta.env.PROD ? '/.netlify/functions' : '/api';
-    
-    try {
-      const response = await fetch(`${apiUrl}${url}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-        },
-        body: data ? JSON.stringify(data) : undefined,
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('API Error:', response.status, errorData);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('API Request failed:', error);
-      throw error;
-    }
-  }
-};
 
 // Layout component from Home.tsx
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -223,21 +169,21 @@ const Profile: React.FC = () => {
   // Fetch profile data
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['profile', username],
-    queryFn: () => apiClient.get(`/users/profile/${username}`),
+    queryFn: () => apiService.getUserProfile(username || ''),
     enabled: !!username
   });
 
   // Fetch user's posts
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: ['userPosts', username],
-    queryFn: () => apiClient.get(`/posts/user/${username}`),
+    queryFn: () => apiService.getUserPosts(username || ''),
     enabled: !!username && activeTab === 'posts'
   });
 
   // Follow/Unfollow mutation
   const followMutation = useMutation({
     mutationFn: (action: 'follow' | 'unfollow') => 
-      apiClient.post(`/users/${action}/${profileData?.data?.user?._id}`),
+      apiService.post(`/users/${action}/${profileData?.data?.user?._id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', username] });
       toast.success('Profile updated successfully');
@@ -250,7 +196,7 @@ const Profile: React.FC = () => {
 
   // Like post mutation
   const likeMutation = useMutation({
-    mutationFn: (postId: string) => apiClient.post(`/posts/${postId}/like`),
+    mutationFn: (postId: string) => apiService.post(`/posts/${postId}/like`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userPosts', username] });
     },
@@ -263,7 +209,7 @@ const Profile: React.FC = () => {
   // Add comment mutation
   const commentMutation = useMutation({
     mutationFn: ({ postId, content }: { postId: string; content: string }) => 
-      apiClient.post(`/posts/${postId}/comment`, { content }),
+      apiService.post(`/posts/${postId}/comment`, { content }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userPosts', username] });
       toast.success('Comment added successfully');

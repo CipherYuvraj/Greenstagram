@@ -98,6 +98,32 @@ class ApiService {
     const endpoint = isProduction ? `/users/unfollow/${userId}` : `/users/unfollow/${userId}`;
     return this.makeRequest(endpoint, { method: 'POST' });
   }
+
+  // Generic HTTP methods for flexibility
+  async get(endpoint: string, params: any = {}) {
+    const queryString = Object.keys(params).length ? `?${new URLSearchParams(params).toString()}` : '';
+    return this.makeRequest(`${endpoint}${queryString}`);
+  }
+
+  async post(endpoint: string, data: any = {}) {
+    return this.makeRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async put(endpoint: string, data: any = {}) {
+    return this.makeRequest(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async delete(endpoint: string) {
+    return this.makeRequest(endpoint, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const apiService = new ApiService();
