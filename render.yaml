@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: greenstagram-backend
+    env: node
+    plan: starter
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: AZURE_CLIENT_ID
+        sync: false
+      - key: AZURE_CLIENT_SECRET
+        sync: false
+      - key: AZURE_TENANT_ID
+        sync: false
+      - key: REDIS_URL
+        sync: false
+
+  - type: static
+    name: greenstagram-frontend
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
+    envVars:
+      - key: VITE_API_URL
+        value: https://greenstagram-backend.onrender.com
+      - key: VITE_APP_ENV
+        value: production

@@ -1,0 +1,32 @@
+{
+  "platform": {
+    "apiLocation": "backend",
+    "appLocation": "frontend", 
+    "outputLocation": "build"
+  },
+  "routes": [
+    {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*"]
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".js": "application/javascript", 
+    ".css": "text/css"
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  }
+}
