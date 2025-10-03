@@ -1,13 +1,13 @@
-import express, { Request, Response } from 'express';
-import { Challenge } from '@/models/challenge';
-import { User } from '@/models/user';
-import Post from '@/models/post';
-import Notification from '@/models/Notification';
-import { authenticate, requireAdmin } from '@/middleware/auth';
-import { validateRequest, createChallengeSchema } from '@/middleware/validation';
-import { checkBadges } from '@/utils/badgeTriggers';
+import express from 'express';
+import { Challenge } from '../models/challenge';
+import { User } from '../models/user';
+import Post from '../models/post';
+import Notification from '../models/Notification';
+import { authenticate, requireAdmin } from '../middleware/auth';
+import { validateRequest, createChallengeSchema } from '../middleware/validation';
+import { checkBadges } from '../utils/badgeTriggers';
 import { io } from '../index';
-import logger from '@/utils/logger';
+import logger from '../utils/logger';
 
 const router = express.Router();
 

@@ -1,12 +1,12 @@
-import express, { Request, Response } from 'express';
-import { User } from '@/models/user';
-import Post from '@/models/post';
-import Notification from '@/models/Notification';
-import { authenticate } from '@/middleware/auth';
-import { validateRequest, updateProfileSchema } from '@/middleware/validation';
-import { checkBadges } from '@/utils/badgeTriggers';
+import express from 'express';
+import { User } from '../models/user';
+import Post from '../models/post';
+import Notification from '../models/Notification';
+import { authenticate } from '../middleware/auth';
+import { validateRequest, updateProfileSchema } from '../middleware/validation';
+import { checkBadges } from '../utils/badgeTriggers';
 import { io } from '../index';
-import logger from '@/utils/logger';
+import logger from '../utils/logger';
 
 const router = express.Router();
 
