@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import Home from './pages/Home';
@@ -142,12 +142,12 @@ const App: React.FC = () => {
                 <div className="text-center">
                   <h1 className="text-4xl font-bold text-gray-800 mb-4">🌿 404</h1>
                   <p className="text-gray-600 mb-4">This page seems to have gone green and disappeared!</p>
-                  <a 
-                    href="/" 
+                  <Link 
+                    to="/" 
                     className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-lg font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200"
                   >
                     Return Home
-                  </a>
+                  </Link>
                 </div>
               </div>
             } 

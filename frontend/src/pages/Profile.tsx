@@ -169,14 +169,14 @@ const Profile: React.FC = () => {
   // Fetch profile data
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['profile', username],
-    queryFn: () => apiService.getUserProfile(username!),
+    queryFn: () => apiService.getUserProfile(username || ''),
     enabled: !!username
   });
 
   // Fetch user's posts
   const { data: postsData, isLoading: postsLoading } = useQuery({
     queryKey: ['userPosts', username],
-    queryFn: () => apiService.getUserPosts(username!),
+    queryFn: () => apiService.getUserPosts(username || ''),
     enabled: !!username && activeTab === 'posts'
   });
 
