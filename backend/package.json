@@ -8,10 +8,17 @@
     "dev": "tsx src/index.ts",
     "dev:watch": "tsx watch src/index.ts",
     "build": "npx tsc --build",
+    "build:production": "npx tsc --build && npm prune --production",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "echo \"No linting specified\" && exit 0",
     "env:check": "node debug-env.js",
-    "azure:test": "node test-azure-auth.js"
+    "azure:test": "node test-azure-auth.js",
+    "vercel:deploy": "vercel --prod",
+    "serverless:deploy": "serverless deploy",
+    "serverless:remove": "serverless remove"
   },
   "dependencies": {
     "@azure/identity": "^3.4.2",

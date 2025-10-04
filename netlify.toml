@@ -1,10 +1,11 @@
 [build]
   base = "frontend"
   publish = "build"
-  command = "npm run build"
+  command = "npm run build:frontend"
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_FLAGS = "--legacy-peer-deps"
   VITE_API_URL = "https://api.greenstagram.netlify.app/.netlify/functions"
 
 [[redirects]]
@@ -20,6 +21,31 @@
 [functions]
   directory = "backend/dist"
   node_bundler = "esbuild"
+  external_node_modules = ["mongoose", "bcryptjs", "jsonwebtoken"]
+
+[context.production]
+  command = "npm run build"
+  
+[context.staging]
+  command = "npm run build"
+  
+[context.branch-deploy]
+  command = "npm run build"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
 
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"

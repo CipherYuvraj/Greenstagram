@@ -3,8 +3,10 @@ services:
     name: greenstagram-backend
     env: node
     plan: starter
+    region: oregon
     buildCommand: cd backend && npm install && npm run build
     startCommand: cd backend && npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -27,8 +29,18 @@ services:
     name: greenstagram-frontend
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/build
+    pullRequestPreviewsEnabled: true
     envVars:
       - key: VITE_API_URL
-        value: https://greenstagram-backend.onrender.com
+        value: https://greenstagram-backend.onrender.com/api
       - key: VITE_APP_ENV
         value: production
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: greenstagram-redis
+    plan: starter
+    region: oregon

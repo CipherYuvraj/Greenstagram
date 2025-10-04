@@ -17,9 +17,10 @@
     "deploy:render": "node scripts/deploy.js render",
     "deploy:azure": "node scripts/deploy.js azure",
     "deploy:aws": "node scripts/deploy.js aws",
-    "deploy:frontend": "node scripts/deploy.js",
-    "deploy:backend": "node scripts/deploy.js",
+    "deploy:frontend": "node scripts/deploy.js vercel frontend",
+    "deploy:backend": "node scripts/deploy.js vercel backend",
     "deploy:preview": "npm run build && netlify deploy",
+    "deploy:build": "node scripts/deploy.js build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -27,7 +28,9 @@
     "prepare": "husky install",
     "health-check": "node scripts/health-check.js",
     "validate:env": "node scripts/validate-env.js",
-    "setup:env": "node scripts/setup-env.js"
+    "validate:deployment": "node scripts/validate-deployment.js",
+    "setup:env": "node scripts/setup-env.js",
+    "postinstall": "npm run setup:env"
   },
   "dependencies": {
     "@netlify/functions": "^4.2.2",

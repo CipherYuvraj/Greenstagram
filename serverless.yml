@@ -1,10 +1,13 @@
-service: greenstagram
+service: greenstagram-backend
+frameworkVersion: '3'
 
 provider:
   name: aws
   runtime: nodejs18.x
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
+  memorySize: 1024
+  timeout: 30
   environment:
     NODE_ENV: ${self:provider.stage}
     MONGODB_URI: ${env:MONGODB_URI}
@@ -13,6 +16,30 @@ provider:
     AZURE_CLIENT_SECRET: ${env:AZURE_CLIENT_SECRET}
     AZURE_TENANT_ID: ${env:AZURE_TENANT_ID}
     REDIS_URL: ${env:REDIS_URL}
+  apiGateway:
+    cors:
+      origin: '*'
+      headers:
+        - Content-Type
+        - X-Amz-Date
+        - Authorization
+        - X-Api-Key
+        - X-Amz-Security-Token
+        - X-Amz-User-Agent
+      allowCredentials: false
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: 
+        - 'Fn::Join':
+          - ':'
+          - - 'arn:aws:logs'
+            - Ref: 'AWS::Region'
+            - Ref: 'AWS::AccountId'
+            - 'log-group:/aws/lambda/*:*:*'
 
 functions:
   api:
@@ -35,6 +62,9 @@ custom:
   serverless-offline:
     httpPort: 3001
     stage: local
+    host: 0.0.0.0
+  dotenv:
+    path: .env
 
 package:
   exclude:
@@ -43,5 +73,31 @@ package:
     - .git/**
     - README.md
     - .env*
+    - backend/src/**
+    - backend/node_modules/**
   include:
     - backend/dist/**
+    - backend/package.json
+
+resources:
+  Resources:
+    GatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: EXPIRED_TOKEN
+        RestApiId:
+          Ref: 'RestApiApigEvent'
+        StatusCode: '401'
+    AuthFailureGatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: 'RestApiApigEvent'
+        StatusCode: '401'
