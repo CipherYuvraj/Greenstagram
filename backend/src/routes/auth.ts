@@ -1,12 +1,12 @@
 import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
-import {User} from '@/models/user';
-import { getJWTSecret } from '@/config/azure';
-import { validateRequest, registerSchema, loginSchema } from '@/middleware/validation';
-import { authenticate } from '@/middleware/auth';
-import { AuthRequest } from '@/types';
-import logger from '@/utils/logger';
+import {User} from '../models/user';
+import { getJWTSecret } from '../config/azure';
+import { validateRequest, registerSchema, loginSchema } from '../middleware/validation';
+import { authenticate } from '../middleware/auth';
+import { AuthRequest } from '../types';
+import logger from '../utils/logger';
 
 const router = express.Router();
 

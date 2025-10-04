@@ -14,7 +14,7 @@ import { Server } from "socket.io";
 import "express-async-errors";
 
 import { connectDB } from "./config/database";
-import { connectRedis, getRedisStatus } from "./config/redis";
+import { connectRedis } from "./config/redis";
 import { initializeAzureKeyVault, azureKeyVault } from "./config/azure";
 import { initializeAppInsights } from "./config/applicationInsights";
 import { errorHandler } from "./middleware/errorHandler";
@@ -31,6 +31,9 @@ import searchRoutes from "./routes/search";
 import aiRoutes from "./routes/ai";
 import notificationRoutes from "./routes/notifications";
 import healthRoutes from "./routes/health";
+
+// import Security Middleware
+import { applySecurity } from './middleware/securityMiddleware';
 
 dotenv.config();
 
@@ -72,6 +75,9 @@ app.use(
 );
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// securityMiddleware
+applySecurity(app);
 
 // Initialize connections
 const initializeApp = async () => {

@@ -1,14 +1,14 @@
-import express, { Request, Response } from 'express';
-import Post from '@/models/post';
-import { User }from '@/models/user';
-import {Challenge} from '@/models/challenge';
-import Notification from '@/models/Notification';
-import { authenticate} from '@/middleware/auth';
-import { validateRequest, createPostSchema } from '@/middleware/validation';
-import { AuthRequest } from '@/types';
-import { checkBadges } from '@/utils/badgeTriggers';
+import express from 'express';
+import Post from '../models/post';
+import { User }from '../models/user';
+import {Challenge} from '../models/challenge';
+import Notification from '../models/Notification';
+import { authenticate} from '../middleware/auth';
+import { validateRequest, createPostSchema } from '../middleware/validation';
+import { AuthRequest } from '../types';
+import { checkBadges } from '../utils/badgeTriggers';
 import { io } from '../index';
-import logger from '@/utils/logger';
+import logger from '../utils/logger';
 
 const router = express.Router();
 
