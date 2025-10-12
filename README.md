@@ -1825,6 +1825,56 @@ Contributors are recognized in our:
 
 ---
 
+## 🐳 Docker Development Setup
+
+The easiest way to get started is using Docker. This eliminates the need to manually install MongoDB and Redis.
+
+### Prerequisites
+- Docker Desktop installed and running
+- Git
+
+### Quick Start
+
+Clone the repository
+```bash
+git clone https://github.com/CipherYuvraj/Greenstagram.git
+cd Greenstagram
+```
+Start the complete development environment
+```bash
+chmod +x start-dev.sh
+./start-dev.sh
+```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+- MongoDB: localhost:27017
+- Redis: localhost:6379
+
+For detailed Docker instructions, see [DOCKER.md](DOCKER.md).
+
+### Manual Development Setup
+If you prefer not to use Docker, you can set up services manually:
+
+1. Install and start MongoDB locally
+2. Install and start Redis locally
+3. Copy `backend/.env.example`  to `backend/.env`
+4. Start backend: `cd backend && npm run dev`
+5. Start frontend: `cd frontend && npm run dev`
+
+## 🎯 Hacktoberfest 2025
+
+This project participates in Hacktoberfest 2025! Check out our [issues labeled with hacktoberfest](https://github.com/CipherYuvraj/Greenstagram/labels/hacktoberfest) to contribute.
+
+### Docker Containerization - Issue #21 ✅
+- Complete Docker Compose setup for development
+- MongoDB and Redis containerization
+- One-command development environment startup
+- Consistent environment across all contributors
+
+---
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE-CODE](LICENSE-CODE) file for details.

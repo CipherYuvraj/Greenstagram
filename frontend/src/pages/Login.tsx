@@ -7,6 +7,7 @@ import * as yup from 'yup';
 import { Eye, EyeOff, Leaf, Mail, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
+import { apiService } from '../services/api';
 import AnimatedButton from '../components/ui/AnimatedButton';
 import ThemeToggle from '../components/ui/ThemeToggle';
 import ParticleBackground from '../components/ui/ParticleBackground';
@@ -36,30 +37,19 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setIsLoading(true);
-      // Call your API to authenticate and get token and user data
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          emailOrUsername: data.emailOrUsername,
-          password: data.password,
-        }),
+      // Use apiService for authentication
+      const response = await apiService.post('auth/login', {
+        emailOrUsername: data.emailOrUsername,
+        password: data.password,
       });
       
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-      
-      const { token, user } = await response.json();
-      
-      // Now call login with the correct arguments
-      login(token, user);
+      // The login method will handle the token storage
+      login(response.token, response.user);
       toast.success('Welcome back to Greenstagram! 🌱');
       navigate('/');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      console.error('Login error:', error);
+      toast.error(error.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }

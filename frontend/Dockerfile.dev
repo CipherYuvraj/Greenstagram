@@ -1,0 +1,23 @@
+# ==========================================
+# 🐳 Frontend Development Dockerfile
+# ==========================================
+
+FROM node:18-alpine
+
+# Set working directory for frontend
+WORKDIR /app
+
+# Copy frontend package files specifically
+COPY package*.json ./
+
+# Install frontend dependencies only (skip postinstall scripts for Docker)
+RUN npm ci --ignore-scripts
+
+# Copy frontend source code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

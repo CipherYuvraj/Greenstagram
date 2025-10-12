@@ -39,32 +39,118 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
+
+// CORS configuration
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173',
+      process.env.FRONTEND_URL
+    ].filter(Boolean) as string[];
+
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      console.warn('⚠️ CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'), false);
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+    'X-Access-Token',
+    'X-Key',
+    'Cache-Control',
+    'Pragma',
+    'Expires',
+    'If-Modified-Since',
+    'If-None-Match',
+    'User-Agent',
+    'Accept-Language',
+    'Accept-Encoding'
+  ],
+  exposedHeaders: [
+    'Authorization',
+    'X-Total-Count',
+    'X-Page-Count',
+    'Content-Range'
+  ],
+  credentials: false,
+  optionsSuccessStatus: 200,
+  maxAge: 86400 // 24 hours
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Configure Socket.IO with CORS
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
+    credentials: true
   },
 });
 
-// Middleware
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'"],
-        imgSrc: ["'self'", "https:", "data:"],
-      },
-    }
-  })
-);
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    credentials: true,
-  })
-);
+// Add a simple test endpoint
+export const testCors = (app: express.Application) => {
+  app.get('/api/test-cors', (req, res) => {
+    res.json({ message: 'CORS is working!', timestamp: new Date().toISOString() });
+  });
+};
+
+testCors(app);
+
+// Security middleware with CORS-friendly settings
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false, // Disable for API server
+}));
+
+// Manual OPTIONS handler for preflight requests
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173'
+  ];
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, Expires, If-Modified-Since, If-None-Match, User-Agent, Accept-Language, Accept-Encoding');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  console.log('✅ OPTIONS request handled for:', req.path);
+  res.sendStatus(200);
+});
+
+// Log all incoming requests
+app.use((req, res, next) => {
+  logger.info(`Incoming ${req.method} request to ${req.originalUrl}`, {
+    headers: req.headers,
+    body: req.body,
+    query: req.query,
+    params: req.params
+  });
+  next();
+});
 app.use(compression());
 app.use(
   morgan("combined", {
@@ -126,6 +212,9 @@ const initializeApp = async () => {
 // Socket.io setup
 socketHandler(io);
 
+// Import Redis functions
+import { getRedisStatus } from './config/redis';
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -137,9 +226,9 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/health", healthRoutes);
 
 // Simple health check directly in index.ts (in case /routes/health isn't used)
-app.get("/healthz", (_req, res) => {
+app.get("/healthz", async (_req, res) => {
   const appInsights = require('./config/applicationInsights');
-  const redisStatus = getRedisStatus();
+  const redisStatus = await getRedisStatus();
   
   res.json({
     success: true,
@@ -166,27 +255,58 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
-initializeApp().then(() => {
-  httpServer.listen(PORT, () => {
-    logger.info(`Server running on port ${PORT}`);
-    logger.info(`📍 API URL: http://localhost:${PORT}`);
-    logger.info(
-      `🔐 Key Vault: ${
-        azureKeyVault.isConnected() ? "✅ Connected" : "❌ Not Connected"
-      }`
-    );
-    // Add App Insights status logging
-    const appInsights = require('./config/applicationInsights');
-    logger.info(
-      `📊 Application Insights: ${
-        appInsights.isConnected() ? "✅ Connected" : "❌ Not Connected"
-      }`
-    );
-    logger.info(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  });
+// Error handler for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  process.exit(1);
 });
+
+// Error handler for unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Start the server
+const startServer = async () => {
+  try {
+    await initializeApp();
+    
+    httpServer.listen(Number(PORT), '0.0.0.0', () => {
+      logger.info(`🚀 Server running on port ${PORT}`);
+      logger.info(`🌐 API URL: http://localhost:${PORT}`);
+      logger.info(
+        `🔐 Key Vault: ${azureKeyVault.isConnected() ? '✅ Connected' : '❌ Not Connected'}`
+      );
+      
+      // Add App Insights status logging
+      const appInsights = require('./config/applicationInsights');
+      logger.info(
+        `📊 Application Insights: ${appInsights.isConnected() ? '✅ Connected' : '❌ Not Connected'}`
+      );
+      
+      logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info('🔄 Server is ready to accept connections');
+    });
+
+    // Handle server errors
+    httpServer.on('error', (error) => {
+      if ((error as any).code === 'EADDRINUSE') {
+        logger.error(`Port ${PORT} is already in use`);
+      } else {
+        logger.error('Server error:', error);
+      }
+      process.exit(1);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export { io };
 export default app;

@@ -1,0 +1,25 @@
+# ==========================================
+# 🐳 Backend Dockerfile for Development
+# ==========================================
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies (skip postinstall scripts for Docker builds)
+RUN npm install --ignore-scripts
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 5000
+
+# Install tsx globally for development
+RUN npm install -g tsx
+
+# Start development server with hot reload
+CMD ["tsx", "--watch", "src/index.ts"]

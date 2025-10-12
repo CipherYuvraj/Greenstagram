@@ -37,7 +37,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: backend-app-dev
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       NODE_ENV: development
       PORT: 5000

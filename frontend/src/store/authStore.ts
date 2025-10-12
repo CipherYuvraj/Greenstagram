@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import axios from 'axios';
+import { apiService } from '../services/api';
 
 interface User {
   id: string;
@@ -44,54 +44,58 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      login: (token: string, user: User) => {
-        // Set axios default header for future requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        set({ token, user, error: null });
+      login: async (token: string, user: User) => {
+        try {
+          // Store token in localStorage for persistence
+          localStorage.setItem('token', token);
+          
+          // Make sure the token is set in the API service
+          apiService.setToken(token);
+          
+          // Update the state
+          set({ token, user, error: null, isLoading: false });
+          
+          // Fetch the latest user data
+          await get().fetchProfile();
+        } catch (error) {
+          console.error('Login error:', error);
+          localStorage.removeItem('token');
+          set({ token: null, user: null, error: 'Failed to log in', isLoading: false });
+          throw error;
+        }
       },
 
       register: async (userData: RegisterData) => {
         set({ isLoading: true, error: null });
-        
         try {
-          const response = await axios.post('/api/auth/register', userData);
-          const { user, token } = response.data.data;
+          const response = await apiService.post('auth/register', userData);
+          const { user, token } = response.data;
           
-          // Set axios default header for future requests
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          // Store token in localStorage
+          localStorage.setItem('token', token);
           
-          set({ 
-            user, 
-            token, 
-            isLoading: false,
-            error: null 
-          });
-
+          set({ user, token, isLoading: false, error: null });
+          return response;
         } catch (error: any) {
-          const errorMessage = error.response?.data?.message || 'Registration failed';
-          set({ 
-            error: errorMessage, 
-            isLoading: false,
-            user: null,
-            token: null 
-          });
-          throw new Error(errorMessage);
+          // Clear token on error
+          localStorage.removeItem('token');
+          
+          const errorMessage = error.message || 'Registration failed';
+          set({ error: errorMessage, isLoading: false, user: null, token: null });
+          throw error;
         }
       },
 
       logout: () => {
-        // Remove token from axios headers
-        delete axios.defaults.headers.common['Authorization'];
+        // Clear token from localStorage
+        localStorage.removeItem('token');
         
-        set({ 
-          user: null, 
-          token: null, 
-          error: null 
-        });
-
-        // Call logout endpoint for analytics
-        axios.post('/api/auth/logout').catch(() => {
-          // Ignore errors on logout
+        // Reset state
+        set({
+          user: null,
+          token: null,
+          error: null,
+          isLoading: false
         });
       },
 
@@ -109,23 +113,23 @@ export const useAuthStore = create<AuthState>()(
       },
 
       fetchProfile: async () => {
-        const token = get().token;
-        if (!token) return;
-
+        set({ isLoading: true, error: null });
+        
         try {
-          // Ensure axios has the token
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          const response = await apiService.get('auth/me');
+          const user = response.data;
           
-          const response = await axios.get('/api/auth/profile');
-          const user = response.data.data;
-          
-          set({ user });
+          set({ user, isLoading: false });
+          return user;
         } catch (error: any) {
-          console.error('Failed to fetch profile:', error);
-          if (error.response?.status === 401) {
-            // Token is invalid, logout user
+          // If unauthorized, log the user out
+          if (error.message?.includes('401') || error.message?.includes('token')) {
             get().logout();
           }
+          
+          console.error('Failed to fetch profile:', error);
+          set({ error: 'Failed to load user profile', isLoading: false });
+          throw error;
         }
       }
     }),
@@ -136,9 +140,9 @@ export const useAuthStore = create<AuthState>()(
         token: state.token 
       }),
       onRehydrateStorage: () => (state) => {
-        // Set axios header on app load if token exists
         if (state?.token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;
+          // Token will be automatically included via the API service
+          console.log('Rehydrated token from storage');
         }
       }
     }
