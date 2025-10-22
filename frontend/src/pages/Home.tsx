@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sparkles, TrendingUp, Users, Leaf, LogOut, Plus } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
+import { apiService } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ui/ThemeToggle';
 
@@ -103,8 +104,12 @@ const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({
   );
 };
 
-// Simple PostCard component for now
-const PostCard: React.FC<{ post: any; onLike: (id: string) => void }> = ({ post, onLike }) => (
+// PostCard component with loading and error states
+const PostCard: React.FC<{ 
+  post: any; 
+  onLike: (id: string) => void;
+  isLiking?: boolean;
+}> = ({ post, onLike, isLiking = false }) => (
   <motion.div
     whileHover={{ y: -2 }}
     className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-green-100 dark:border-gray-700 shadow-lg transition-colors duration-300"
@@ -141,14 +146,15 @@ const PostCard: React.FC<{ post: any; onLike: (id: string) => void }> = ({ post,
     <div className="flex items-center space-x-6 text-gray-600 dark:text-gray-400 transition-colors duration-300">
       <button 
         onClick={() => onLike(post._id)}
-        className="flex items-center space-x-2 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+        disabled={isLiking}
+        className={`flex items-center space-x-2 ${isLiking ? 'opacity-50' : 'hover:text-red-500 dark:hover:text-red-400'} transition-colors`}
       >
-        <span>❤️</span>
-        <span>{post.likes.length}</span>
+        <span>{post.isLiked ? '❤️' : '🤍'}</span>
+        <span>{post.likeCount || post.likes?.length || 0}</span>
       </button>
       <div className="flex items-center space-x-2">
         <span>💬</span>
-        <span>{post.comments.length}</span>
+        <span>{post.commentCount || post.comments?.length || 0}</span>
       </div>
       <div className="flex items-center space-x-2">
         <span>🔄</span>
@@ -232,6 +238,8 @@ const Home: React.FC = () => {
     }
   }, [user?.username, fetchProfile, fetchNotifications]);
 
+  const queryClient = useQueryClient();
+  
   const {
     data,
     fetchNextPage,
@@ -243,73 +251,11 @@ const Home: React.FC = () => {
     queryKey: ['feed', feedType],
     queryFn: async ({ pageParam = 1 }) => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`/api/posts/feed?page=${pageParam}&type=${feedType}`, {
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : '',
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
+        const response = await apiService.get(`posts/feed?page=${pageParam}&type=${feedType}`);
+        return response;
       } catch (error) {
-        console.error('Failed to fetch posts, using mock data:', error);
-        // Fallback to mock data if API fails
-        return {
-          data: {
-            posts: [
-              {
-                _id: '1',
-                userId: {
-                  _id: 'user1',
-                  username: 'eco_warrior',
-                  profilePicture: '',
-                  isVerified: true
-                },
-                content: "Just completed my first week of zero waste living! 🌱 It's amazing how much we can reduce our environmental impact with small daily changes. #ZeroWaste #SustainableLiving",
-                media: [],
-                hashtags: ['ZeroWaste', 'SustainableLiving', 'EcoFriendly'],
-                mentions: [],
-                likes: [{ _id: 'like1' }, { _id: 'like2' }],
-                comments: [{ _id: 'comment1' }],
-                shares: 5,
-                isEcoPost: true,
-                ecoCategory: 'sustainable-living',
-                visibility: 'public',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-              },
-              {
-                _id: '2',
-                userId: {
-                  _id: 'user2',
-                  username: 'plant_parent',
-                  profilePicture: '',
-                  isVerified: false
-                },
-                content: "My urban garden is thriving! 🌿 Growing your own vegetables is not only rewarding but also helps reduce your carbon footprint. Here's what I harvested today! #UrbanGardening #GrowYourOwn",
-                media: [],
-                hashtags: ['UrbanGardening', 'GrowYourOwn', 'Sustainability'],
-                mentions: [],
-                likes: [{ _id: 'like3' }],
-                comments: [],
-                shares: 2,
-                isEcoPost: true,
-                ecoCategory: 'gardening',
-                visibility: 'public',
-                createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-              }
-            ]
-          },
-          pagination: {
-            hasMore: pageParam < 2
-          }
-        };
+        console.error('Failed to fetch posts:', error);
+        throw error;
       }
     },
     initialPageParam: 1,
@@ -319,7 +265,10 @@ const Home: React.FC = () => {
     enabled: !!user
   });
 
-  const posts = data?.pages?.flatMap(page => page.data.posts) || [];
+  // Get posts from the API response or use an empty array if no data
+  const posts = React.useMemo(() => {
+    return data?.pages?.flatMap(page => page.data?.posts || []) || [];
+  }, [data]);
 
   const feedTabs = [
     {
@@ -342,23 +291,51 @@ const Home: React.FC = () => {
     }
   ];
 
+  const likeMutation = useMutation({
+    mutationFn: (postId: string) => {
+      // Return the promise from the API call
+      return apiService.likePost(postId);
+    },
+    onSuccess: (_, postId) => {
+      // Update the cache to reflect the like
+      queryClient.setQueryData(['feed', feedType], (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              posts: page.data.posts.map((post: any) => {
+                if (post._id === postId) {
+                  const isLiked = post.likes.some((like: any) => 
+                    like.userId === user?._id
+                  );
+                  
+                  return {
+                    ...post,
+                    likes: isLiked
+                      ? post.likes.filter((like: any) => like.userId !== user?._id)
+                      : [...post.likes, { _id: `like-${Date.now()}`, userId: user?._id }],
+                    likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1
+                  };
+                }
+                return post;
+              })
+            }
+          }))
+        };
+      });
+    }
+  });
+
   const handlePostLike = async (postId: string) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (response.ok) {
-        // Refresh the feed after successful like
-        window.location.reload();
-      }
+      await likeMutation.mutateAsync(postId);
     } catch (error) {
-      console.error('Failed to like post:', error);
+      console.error('Error liking post:', error);
+      // The error will be handled by the mutation's onError
     }
   };
 
@@ -471,9 +448,11 @@ const Home: React.FC = () => {
                 }}
                 layout
               >
-                <PostCard
-                  post={post}
+                <PostCard 
+                  key={post._id} 
+                  post={post} 
                   onLike={handlePostLike}
+                  isLiking={likeMutation.isPending && likeMutation.variables?.[0] === post._id}
                 />
               </motion.div>
             ))}

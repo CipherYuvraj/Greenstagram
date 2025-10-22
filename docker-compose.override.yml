@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: greenstagram-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: greenstagram_admin
+      MONGO_INITDB_ROOT_PASSWORD: greenstagram_password
+      MONGO_INITDB_DATABASE: greenstagram
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./.docker/mongodb/data:/data/db
+      - ./.docker/mongodb/initdb.d:/docker-entrypoint-initdb.d:ro
+
+  redis:
+    image: redis:7-alpine
+    container_name: greenstagram-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass greenstagram_redis_pass
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./.docker/redis/data:/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: .docker/backend/Dockerfile.dev
+    container_name: greenstagram-backend-dev
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      MONGODB_URI: mongodb://greenstagram_admin:greenstagram_password@mongodb:27017/greenstagram?authSource=admin
+      REDIS_URL: redis://:greenstagram_redis_pass@redis:6379
+      JWT_SECRET: development-jwt-secret-key-for-local-use-only
+      FRONTEND_URL: http://localhost:3000
+      CORS_ORIGIN: http://localhost:3000
+    volumes:
+      - ./backend:/app/backend
+      - /app/backend/node_modules
+    depends_on:
+      - mongodb
+      - redis
+
+  frontend:
+    build:
+      context: .
+      dockerfile: .docker/frontend/Dockerfile.dev
+    container_name: greenstagram-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    environment:
+      VITE_API_URL: http://localhost:5000
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:
+  redis_data:
