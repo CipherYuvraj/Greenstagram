@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import Post from '../models/post';
 import {User} from '../models/user';
 import {Challenge} from '../models/challenge';

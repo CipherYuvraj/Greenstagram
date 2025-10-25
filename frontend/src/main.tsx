@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
@@ -30,7 +30,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       {/* Only show devtools in development */}
       {import.meta.env.DEV && (
         <Suspense fallback={null}>
-          <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
+          <ReactQueryDevtools initialIsOpen={false} />
         </Suspense>
       )}
     </QueryClientProvider>

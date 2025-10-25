@@ -6,11 +6,8 @@ import {
   Shield, 
   Leaf, 
   Moon, 
-  Sun, 
-  Globe,
-  Save,
-  Eye,
-  EyeOff
+  Sun,
+  Save
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 

@@ -15,6 +15,7 @@ const Explore = lazy(() => import('./pages/Explore'));
 const CreatePost = lazy(() => import('./pages/CreatePost'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Debug = lazy(() => import('./pages/Debug'));
+const PlantHealth = lazy(() => import('./pages/PlantHealth'));
 
 // Loading component for Suspense fallback
 const PageLoading = () => (
@@ -150,6 +151,15 @@ const App: React.FC = () => {
                 <ProtectedRoute>
                   <ErrorBoundary>
                     <Profile />
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
+
+              {/* Plant Health Detector Route */}
+              <Route path="/plant-health" element={
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <PlantHealth />
                   </ErrorBoundary>
                 </ProtectedRoute>
               } />

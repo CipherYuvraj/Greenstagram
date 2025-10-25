@@ -12,7 +12,8 @@ import {
   Settings,
   Award,
   Menu,
-  X
+  X,
+  Scan
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import ThemeToggle from '../ui/ThemeToggle';
@@ -33,6 +34,7 @@ const Navbar: React.FC = () => {
     { icon: Home, label: 'Home', path: '/' },
     { icon: Search, label: 'Explore', path: '/explore' },
     { icon: PlusCircle, label: 'Create', path: '/create' },
+    { icon: Scan, label: 'Plant Health', path: '/plant-health' },
     { icon: Award, label: 'Challenges', path: '/challenges' },
     { icon: Bell, label: 'Notifications', path: '/notifications' },
   ];

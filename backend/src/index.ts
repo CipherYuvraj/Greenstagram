@@ -85,7 +85,7 @@ const corsOptions = {
     'X-Page-Count',
     'Content-Range'
   ],
-  credentials: false,
+  credentials: true, // Changed from false to true to allow credentials
   optionsSuccessStatus: 200,
   maxAge: 86400 // 24 hours
 };
