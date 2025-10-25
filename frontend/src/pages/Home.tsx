@@ -309,15 +309,16 @@ const Home: React.FC = () => {
               ...page.data,
               posts: page.data.posts.map((post: any) => {
                 if (post._id === postId) {
+                  const userId = (user as any)?._id || user?.id;
                   const isLiked = post.likes.some((like: any) => 
-                    like.userId === user?._id
+                    like.userId === userId
                   );
                   
                   return {
                     ...post,
                     likes: isLiked
-                      ? post.likes.filter((like: any) => like.userId !== user?._id)
-                      : [...post.likes, { _id: `like-${Date.now()}`, userId: user?._id }],
+                      ? post.likes.filter((like: any) => like.userId !== userId)
+                      : [...post.likes, { _id: `like-${Date.now()}`, userId }],
                     likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1
                   };
                 }

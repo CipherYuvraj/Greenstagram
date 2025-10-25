@@ -153,7 +153,7 @@ class ApiService {
     return response.data;
   }
 
-  async register(userData: { username: string; email: string; password: string }): Promise<AuthResponse> {
+  async register(userData: { username: string; email: string; password: string; confirmPassword: string }): Promise<AuthResponse> {
     const response = await this.post<ApiResponse<AuthResponse>>('/auth/register', userData);
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Registration failed');
@@ -176,6 +176,59 @@ class ApiService {
       throw new Error(response.message || 'Failed to fetch user');
     }
     return response.data.user;
+  }
+
+  // Plant identification method
+  async identifyPlant(formData: FormData): Promise<any> {
+    const response = await this.post<ApiResponse<any>>('/ai/identify-plant', formData, true);
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to identify plant');
+    }
+    return response.data;
+  }
+
+  // User profile methods
+  async getUserProfile(username: string): Promise<any> {
+    return this.get(`/users/profile/${username}`);
+  }
+
+  async getUserPosts(username: string): Promise<any> {
+    return this.get(`/users/${username}/posts`);
+  }
+
+  // Follow/Unfollow methods
+  async followUser(userId: string): Promise<any> {
+    return this.post(`/users/${userId}/follow`);
+  }
+
+  async unfollowUser(userId: string): Promise<any> {
+    return this.delete(`/users/${userId}/follow`);
+  }
+
+  // Post interaction methods
+  async likePost(postId: string): Promise<any> {
+    return this.post(`/posts/${postId}/like`);
+  }
+
+  async addComment(postId: string, content: string): Promise<any> {
+    return this.post(`/posts/${postId}/comments`, { content });
+  }
+
+  // Notification methods
+  async getNotifications(): Promise<any> {
+    return this.get('/notifications');
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<any> {
+    return this.put(`/notifications/${notificationId}/read`);
+  }
+
+  async markAllNotificationsAsRead(): Promise<any> {
+    return this.put('/notifications/read-all');
+  }
+
+  async clearNotifications(): Promise<any> {
+    return this.delete('/notifications');
   }
 }
 

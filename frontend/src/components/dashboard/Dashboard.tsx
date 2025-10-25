@@ -260,12 +260,12 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="text-center p-3 bg-teal-50 rounded-lg">
                   <Users className="w-6 h-6 text-teal-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-teal-700">{user?.followers?.length || 0}</p>
+                  <p className="text-2xl font-bold text-teal-700">{(user as any)?.followers?.length || 0}</p>
                   <p className="text-sm text-gray-600">Followers</p>
                 </div>
                 <div className="text-center p-3 bg-blue-50 rounded-lg">
                   <Calendar className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-blue-700">{user?.streaks?.current || 0}</p>
+                  <p className="text-2xl font-bold text-blue-700">{user?.currentStreak || 0}</p>
                   <p className="text-sm text-gray-600">Day Streak</p>
                 </div>
               </div>

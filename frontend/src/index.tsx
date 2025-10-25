@@ -15,18 +15,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Conditionally import React Query DevTools only in development
-let ReactQueryDevtools: React.ComponentType<any> = () => null;
-
-if (process.env.NODE_ENV === 'development') {
-  try {
-    const { ReactQueryDevtools: DevTools } = require('@tanstack/react-query-devtools');
-    ReactQueryDevtools = DevTools;
-  } catch (error) {
-    console.warn('React Query DevTools not available:', error);
-  }
-}
-
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
@@ -59,7 +47,6 @@ root.render(
           },
         }}
       />
-      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </React.StrictMode>
 );
