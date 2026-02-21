@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Bell, 
-  Shield, 
-  Leaf, 
-  Moon, 
+import {
+  Settings as SettingsIcon,
+  User,
+  Bell,
+  Shield,
+  Leaf,
+  Moon,
   Sun,
   Save
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Layout from '../components/layout/Layout';
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -297,6 +298,7 @@ const Settings: React.FC = () => {
   );
 
   return (
+    <Layout>
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
@@ -359,6 +361,7 @@ const Settings: React.FC = () => {
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 

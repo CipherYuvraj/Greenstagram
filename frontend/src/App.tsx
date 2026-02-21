@@ -16,6 +16,7 @@ const CreatePost = lazy(() => import('./pages/CreatePost'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Debug = lazy(() => import('./pages/Debug'));
 const PlantHealth = lazy(() => import('./pages/PlantHealth'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 
 // Loading component for Suspense fallback
 const PageLoading = () => (
@@ -180,12 +181,7 @@ const App: React.FC = () => {
               <Route path="/notifications" element={
                 <ProtectedRoute>
                   <ErrorBoundary>
-                    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
-                      <div className="text-center">
-                        <h1 className="text-2xl font-bold text-gray-800 mb-4">🔔 Notifications</h1>
-                        <p className="text-gray-600">Coming soon! Stay updated with your eco-community activities.</p>
-                      </div>
-                    </div>
+                    <Notifications />
                   </ErrorBoundary>
                 </ProtectedRoute>
               } />
@@ -198,6 +194,15 @@ const App: React.FC = () => {
                         <p className="text-gray-600">Coming soon! Connect with fellow eco-warriors through direct messages.</p>
                       </div>
                     </div>
+                  </ErrorBoundary>
+                </ProtectedRoute>
+              } />
+
+              {/* Search — redirect to Explore */}
+              <Route path="/search" element={
+                <ProtectedRoute>
+                  <ErrorBoundary>
+                    <Explore />
                   </ErrorBoundary>
                 </ProtectedRoute>
               } />

@@ -1,14 +1,18 @@
 import React from 'react';
 import PlantDetector from '../components/plants/PlantDetector';
 import { Leaf, Info } from 'lucide-react';
+import Layout from '../components/layout/Layout';
+import { useNavigate } from 'react-router-dom';
 
 const PlantHealth: React.FC = () => {
+  const navigate = useNavigate();
   const handleDetectionComplete = (result: any) => {
     console.log('Plant detection completed:', result);
     // You can add additional logic here, like saving to posts, etc.
   };
 
   return (
+    <Layout showParticles={false}>
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white dark:from-gray-900 dark:to-gray-800 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -117,16 +121,23 @@ const PlantHealth: React.FC = () => {
             collection's growth over time
           </p>
           <div className="flex justify-center gap-4">
-            <button className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition-colors">
+            <button
+              onClick={() => navigate('/create')}
+              className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition-colors"
+            >
               Share Your Plant
             </button>
-            <button className="bg-green-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-800 transition-colors border border-green-400">
+            <button
+              onClick={() => navigate('/explore')}
+              className="bg-green-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-800 transition-colors border border-green-400"
+            >
               Browse Community
             </button>
           </div>
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 

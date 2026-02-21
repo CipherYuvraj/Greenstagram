@@ -10,6 +10,7 @@
     "build:staging": "tsc && vite build --mode staging",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
+
     "netlify:dev": "netlify dev",
     "netlify:build": "npm run build && netlify build",
     "netlify:deploy": "netlify deploy --prod",

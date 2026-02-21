@@ -120,13 +120,11 @@
 
 | Metric | Value | Description |
 |--------|-------|-------------|
-| 🌱 **Lines of Code** | 25,000+ | TypeScript/JavaScript codebase |
-| 🏗️ **Components** | 50+ | Reusable React components |
+| 🌱 **Lines of Code** | 15,000+ | TypeScript/JavaScript codebase |
+| 🏗️ **Components** | 40+ | Reusable React components |
 | 🔌 **API Endpoints** | 30+ | RESTful API routes |
 | 🎨 **Animations** | 100+ | Framer Motion interactions |
-| 🧪 **Test Coverage** | 85%+ | Comprehensive test suite |
-| ⚡ **Performance Score** | 95+ | Lighthouse performance |
-| 🌍 **Carbon Neutral** | 100% | Green hosting & optimization |
+| 🌍 **Eco-Focused** | 100% | Purpose-built for sustainability |
 
 ---
 
@@ -752,7 +750,7 @@ nano .env
 # Server Configuration
 NODE_ENV=development
 PORT=5000
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:5173
 
 # Database
 MONGODB_URI=mongodb://localhost:27017/greenstagram
@@ -777,7 +775,7 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=your-insights-connection
 # Security
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=http://localhost:5173
 ```
 
 **Frontend `.env` file:**
@@ -868,7 +866,7 @@ Terminal 2 - Frontend:
 cd frontend
 npm run dev
 
-# Vite dev server running on http://localhost:3000
+# Vite dev server running on http://localhost:5173
 # React Fast Refresh enabled
 ```
 
@@ -904,7 +902,7 @@ docker-compose down
 
 | Service | Port | Status | URL |
 |---------|------|--------|-----|
-| 🎨 Frontend | 3000 | 🟢 Running | http://localhost:3000 |
+| 🎨 Frontend | 5173 | 🟢 Running | http://localhost:5173 |
 | 🔧 Backend | 5000 | 🟢 Running | http://localhost:5000/api |
 | 🗄️ MongoDB | 27017 | 🟢 Connected | mongodb://localhost:27017 |
 | 🔴 Redis | 6379 | 🟡 Optional | redis://localhost:6379 |
@@ -956,7 +954,7 @@ curl http://localhost:5000/api/health
 
 **Frontend Health:**
 ```bash
-curl http://localhost:3000
+curl http://localhost:5173
 
 # Should return HTML with React root div
 ```
@@ -1108,7 +1106,7 @@ yarn install
    ```typescript
    // backend/src/index.ts
    const corsOptions = {
-     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
      credentials: true
    };
    ```
@@ -1364,9 +1362,8 @@ graph TB
     end
     
     subgraph "🌐 External Services"
-        O[PlantNet API] --> P[Groq AI API]
-        P --> Q[Cloudinary CDN]
-        Q --> R[Email Service]
+        O[PlantNet API]
+        P[Groq AI API]
     end
     
     subgraph "☁️ Azure Cloud Services"
@@ -1379,6 +1376,7 @@ graph TB
     A --> F
     F --> K
     F --> O
+    F --> P
     S --> F
 ```
 
@@ -1839,16 +1837,6 @@ AZURE_KEY_VAULT_URL=https://your-keyvault.vault.azure.net/
 AZURE_TENANT_ID=your-azure-tenant-id
 AZURE_CLIENT_ID=your-azure-client-id
 AZURE_CLIENT_SECRET=your-azure-client-secret
-
-# 📧 Email Service (Optional)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-
-# 📱 Media Storage (Optional)
-CLOUDINARY_CLOUD_NAME=your-cloudinary-name
-CLOUDINARY_API_KEY=your-cloudinary-key
-CLOUDINARY_API_SECRET=your-cloudinary-secret
 ```
 
 </details>
@@ -1859,15 +1847,14 @@ npm run dev
 
 # Or start individually:
 # npm run dev:backend   # Starts backend on port 5000
-# npm run dev:frontend  # Starts frontend on port 3000
+# npm run dev:frontend  # Starts frontend on port 5173
 ```
 
 <div align="center">
 
 🎉 **Success!** Your application should now be running at:
-- **🌐 Frontend**: http://localhost:3000
+- **🌐 Frontend**: http://localhost:5173
 - **⚙️ Backend**: http://localhost:5000
-- **📚 API Documentation**: http://localhost:5000/api-docs
 - **📊 Health Check**: http://localhost:5000/health
 
 </div>
@@ -1947,8 +1934,8 @@ PORT=5000
 NODE_ENV=development
 
 # 🌐 Frontend Configuration
-FRONTEND_URL=http://localhost:3000
-CORS_ORIGIN=http://localhost:3000
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGIN=http://localhost:5173
 
 # ===========================================
 # ☁️ AZURE SERVICES
@@ -1970,11 +1957,8 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;IngestionEndpo
 # 🌿 PlantNet API (Plant Identification)
 PLANTNET_API_KEY=your-plantnet-api-key
 
-# 🧠 Groq API (AI Quote Generation)
+# 🧠 Groq API (AI Quote Generation - llama3-8b-8192 + mixtral-8x7b-32768)
 GROQ_API_KEY=gsk_your-groq-api-key-here
-
-# 🤖 OpenAI API (Alternative AI Provider)
-OPENAI_API_KEY=sk-your-openai-api-key-here
 
 # ===========================================
 # 💾 CACHING & PERFORMANCE
@@ -1985,27 +1969,28 @@ REDIS_URL=redis://localhost:6379
 CACHE_TTL=3600
 
 # ===========================================
-# 📧 EMAIL SERVICES
+# 📧 EMAIL SERVICES (Future Integration)
 # ===========================================
 
-# 📮 Email Configuration
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-specific-password
+# Email service is not yet integrated - coming in a future release
+# EMAIL_HOST=smtp.gmail.com
+# EMAIL_PORT=587
+# EMAIL_USER=your-email@gmail.com
+# EMAIL_PASS=your-app-specific-password
 
 # ===========================================
 # 📱 MEDIA STORAGE
 # ===========================================
 
-# ☁️ Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
+# Media files are currently handled in-memory via Multer (10MB limit)
+# Cloudinary integration is planned for a future release
+# CLOUDINARY_CLOUD_NAME=your-cloud-name
+# CLOUDINARY_API_KEY=your-api-key
+# CLOUDINARY_API_SECRET=your-api-secret
 
 # 📂 File Upload Limits
-MAX_FILE_SIZE=50MB
-ALLOWED_FILE_TYPES=image/jpeg,image/png,image/gif,video/mp4,video/webm
+MAX_FILE_SIZE=10MB
+ALLOWED_FILE_TYPES=image/jpeg,image/png,image/gif,image/webp
 
 # ===========================================
 # 🔒 SECURITY & RATE LIMITING
@@ -2320,349 +2305,6 @@ jobs:
 
 ---
 
-## 🚀 Deployment Guide
-
-### 🌟 One-Command Deployment
-
-Deploy your application to any platform with a single command:
-
-```bash
-npm run deploy
-```
-
-This will show you deployment options for all supported platforms.
-
-### 📋 Supported Platforms
-
-| Platform | Frontend | Backend | Pricing | Best For |
-|----------|----------|---------|---------|----------|
-| 🚀 **Vercel** | ✅ Static Sites | ✅ Serverless Functions | Free tier available | Modern web apps |
-| 🌐 **Netlify** | ✅ JAMstack | ✅ Edge Functions | Free tier available | Static sites + APIs |
-| 🔧 **Render** | ✅ Static Sites | ✅ Web Services | Free tier available | Full-stack apps |
-| ☁️ **Azure** | ✅ Static Web Apps | ✅ App Service | Pay-as-you-go | Enterprise solutions |
-| 🔗 **AWS** | ✅ S3 + CloudFront | ✅ Lambda | Pay-as-you-go | Scalable applications |
-
-### 🎯 Quick Platform Deployment
-
-#### 🚀 Vercel Deployment
-```bash
-# Deploy to Vercel
-npm run deploy:vercel
-
-# Deploy only frontend
-npm run deploy:vercel frontend
-
-# Deploy only backend  
-npm run deploy:vercel backend
-```
-
-#### 🌐 Netlify Deployment
-```bash
-# Deploy to Netlify
-npm run deploy:netlify
-
-# Deploy with preview
-npm run deploy:preview
-```
-
-#### 🔧 Render Deployment
-```bash
-# Deploy to Render (requires git push)
-npm run deploy:render
-```
-
-#### ☁️ Azure Deployment
-```bash
-# Deploy to Azure
-npm run deploy:azure
-```
-
-#### 🔗 AWS Deployment
-```bash
-# Deploy to AWS
-npm run deploy:aws
-```
-
-### 🔧 Environment Setup
-
-Before deploying, set up your environment configuration:
-
-```bash
-# Interactive environment setup
-npm run setup:env
-
-# This will guide you through:
-# 1. Platform selection
-# 2. Environment variable configuration
-# 3. Service connections
-# 4. Deployment preparation
-```
-
-### 📋 Environment Templates
-
-The following environment templates are provided:
-
-- **📧 `.env.development`** - Local development
-- **🚀 `.env.vercel`** - Vercel deployment
-- **🌐 `.env.netlify`** - Netlify deployment  
-- **🔧 `.env.render`** - Render deployment
-- **☁️ `.env.azure`** - Azure deployment
-- **🔗 `.env.aws`** - AWS deployment
-
-### 🔐 Required Environment Variables
-
-#### Essential Variables (All Platforms)
-```bash
-# Database
-MONGODB_URI=your_mongodb_connection_string
-
-# Authentication
-JWT_SECRET=your_secure_jwt_secret
-
-# AI Services (Optional)
-GROQ_API_KEY=your_groq_api_key
-PLANTNET_API_KEY=your_plantnet_api_key
-
-# Frontend URL (Platform specific)
-FRONTEND_URL=https://your-app-url.platform.com
-```
-
-#### Platform-Specific Variables
-
-<details>
-<summary>🚀 Vercel Configuration</summary>
-
-In your Vercel dashboard, add these environment variables:
-
-```bash
-# Backend Environment Variables
-NODE_ENV=production
-MONGODB_URI=your_production_mongodb_uri
-JWT_SECRET=your_jwt_secret
-AZURE_CLIENT_ID=your_azure_client_id
-AZURE_CLIENT_SECRET=your_azure_client_secret
-AZURE_TENANT_ID=your_azure_tenant_id
-REDIS_URL=your_redis_url
-GROQ_API_KEY=your_groq_api_key
-
-# Frontend Environment Variables  
-VITE_API_URL=https://your-backend-vercel-url.vercel.app
-VITE_APP_ENV=production
-```
-
-</details>
-
-<details>
-<summary>🌐 Netlify Configuration</summary>
-
-In your Netlify dashboard or `netlify.toml`:
-
-```bash
-# Set in Netlify dashboard under Site settings > Environment variables
-NODE_ENV=production
-MONGODB_URI=your_production_mongodb_uri
-JWT_SECRET=your_jwt_secret
-VITE_API_URL=https://your-site.netlify.app/.netlify/functions
-```
-
-</details>
-
-<details>
-<summary>🔧 Render Configuration</summary>
-
-In your Render dashboard:
-
-```bash
-# Web Service Environment Variables
-NODE_ENV=production
-PORT=10000
-MONGODB_URI=your_production_mongodb_uri
-JWT_SECRET=your_jwt_secret
-
-# Static Site Environment Variables
-VITE_API_URL=https://your-backend.onrender.com
-```
-
-</details>
-
-### 📁 Platform Configuration Files
-
-The repository includes platform-specific configuration files:
-
-- **`vercel.json`** - Vercel deployment configuration
-- **`netlify.toml`** - Netlify build and deployment settings
-- **`render.yaml`** - Render service configuration
-- **`staticwebapp.config.json`** - Azure Static Web Apps configuration
-- **`serverless.yml`** - AWS Lambda deployment configuration
-
-### 🚀 CI/CD Pipeline
-
-GitHub Actions workflow is included for automated deployment:
-
-```yaml
-# .github/workflows/deploy.yml
-# Automatically deploys on push to main branch
-# Supports multiple platforms simultaneously
-```
-
-### 🔧 Manual Deployment Steps
-
-If you prefer manual deployment, follow these steps:
-
-<details>
-<summary>🚀 Manual Vercel Deployment</summary>
-
-1. **Install Vercel CLI**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Login to Vercel**
-   ```bash
-   vercel login
-   ```
-
-3. **Deploy Frontend**
-   ```bash
-   cd frontend
-   vercel --prod
-   ```
-
-4. **Deploy Backend**
-   ```bash
-   cd backend
-   vercel --prod
-   ```
-
-</details>
-
-<details>
-<summary>🌐 Manual Netlify Deployment</summary>
-
-1. **Install Netlify CLI**
-   ```bash
-   npm install -g netlify-cli
-   ```
-
-2. **Login to Netlify**
-   ```bash
-   netlify login
-   ```
-
-3. **Build and Deploy**
-   ```bash
-   cd frontend
-   npm run build
-   netlify deploy --prod --dir=build
-   ```
-
-</details>
-
-### 🔍 Deployment Verification
-
-After deployment, verify your application:
-
-1. **✅ Frontend Accessibility**
-   - Check if the frontend loads correctly
-   - Verify all pages and routes work
-   - Test responsive design
-
-2. **✅ Backend API**
-   - Test API endpoints
-   - Verify authentication works
-   - Check database connectivity
-
-3. **✅ Environment Variables**
-   - Ensure all secrets are properly loaded
-   - Test external service integrations
-   - Verify AI features work
-
-4. **✅ Performance**
-   - Run Lighthouse audit
-   - Check loading times
-   - Verify caching works
-
-### 🆘 Troubleshooting
-
-<details>
-<summary>❗ Common Issues and Solutions</summary>
-
-#### Build Failures
-```bash
-# Clear dependencies and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Check for TypeScript errors
-npm run typecheck
-```
-
-#### Environment Variable Issues
-```bash
-# Verify environment variables are loaded
-node -e "console.log(process.env.NODE_ENV)"
-
-# Check for missing variables
-npm run validate:env
-```
-
-#### API Connection Issues
-```bash
-# Test API connectivity
-curl https://your-api-url.com/health
-
-# Check CORS configuration
-# Verify FRONTEND_URL in backend environment
-```
-
-#### Database Connection
-```bash
-# Test MongoDB connection
-node -e "
-const mongoose = require('mongoose');
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected'))
-  .catch(console.error);
-"
-```
-
-</details>
-
-### 🔄 Deployment Best Practices
-
-1. **🧪 Test Locally First**
-   ```bash
-   npm run build
-   npm run preview
-   ```
-
-2. **🔐 Secure Your Secrets**
-   - Never commit `.env` files
-   - Use platform secret management
-   - Rotate secrets regularly
-
-3. **📊 Monitor Performance**
-   - Set up monitoring alerts
-   - Use Application Insights (Azure)
-   - Monitor error rates
-
-4. **🚀 Zero-Downtime Deployment**
-   - Use staging environments
-   - Implement health checks
-   - Plan rollback strategies
-
-### 🎯 Next Steps
-
-After successful deployment:
-
-1. **🌐 Set up custom domain** (if needed)
-2. **📊 Configure monitoring** and alerts
-3. **🔒 Set up SSL certificate** (usually automatic)
-4. **📈 Monitor performance** and optimize
-5. **🤝 Set up collaboration** workflows
-
----
-
 ## 🧪 Testing
 
 ### 🎯 Testing Strategy
@@ -2674,17 +2316,19 @@ We maintain high code quality through comprehensive testing:
 - **E2E Tests**: Full user journey testing
 - **Performance Tests**: Load and stress testing
 
-### 🧪 Test Coverage Goals
+### 📋 Testing Roadmap
 
-| Test Type | Coverage Target | Current Status |
-|-----------|----------------|----------------|
-| Unit Tests | 90%+ | ✅ 92% |
-| Integration Tests | 80%+ | ✅ 85% |
-| E2E Tests | Key User Flows | ✅ Complete |
-| Performance Tests | Core APIs | ✅ Optimized |
+> ⚠️ **Note:** Automated tests are not yet implemented. Contributing test coverage is a great way to help this project!
+
+| Test Type | Coverage Target | Status |
+|-----------|----------------|--------|
+| Unit Tests | 90%+ | 🟡 Planned |
+| Integration Tests | 80%+ | 🟡 Planned |
+| E2E Tests | Key User Flows | 🟡 Planned |
+| Performance Tests | Core APIs | 🟡 Planned |
 
 <details>
-<summary>🔧 Running Tests</summary>
+<summary>🔧 How to Run Tests (once implemented)</summary>
 
 ```bash
 # Run all tests
@@ -2695,16 +2339,9 @@ cd backend && npm test
 
 # Run frontend tests
 cd frontend && npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run E2E tests
-npm run test:e2e
-
-# Run performance tests
-npm run test:performance
 ```
+
+Want to contribute tests? See the [Contributing](#-contributing) section.
 
 </details>
 
@@ -2736,15 +2373,15 @@ npm run test:performance
 
 ## 📊 Performance
 
-### ⚡ Performance Metrics
+### ⚡ Performance Targets
 
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| Lighthouse Score | 90+ | 95 | ✅ |
-| First Contentful Paint | < 2s | 1.2s | ✅ |
-| Time to Interactive | < 3s | 2.1s | ✅ |
-| API Response Time | < 200ms | 150ms | ✅ |
-| Database Query Time | < 100ms | 75ms | ✅ |
+| Metric | Target | Notes |
+|--------|--------|-------|
+| Lighthouse Score | 90+ | Vite build with code splitting |
+| First Contentful Paint | < 2s | TanStack Query caching |
+| Time to Interactive | < 3s | Lazy-loaded routes |
+| API Response Time | < 200ms | Redis caching layer |
+| Database Query Time | < 100ms | Mongoose indexed queries |
 
 ### 🚀 Optimization Techniques
 
@@ -2882,7 +2519,7 @@ chmod +x start-dev.sh
 ```
 
 The application will be available at:
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:5173
 - Backend API: http://localhost:5000
 - MongoDB: localhost:27017
 - Redis: localhost:6379

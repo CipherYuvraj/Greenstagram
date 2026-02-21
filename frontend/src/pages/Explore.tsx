@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Search, TrendingUp, Hash, Users, Leaf, Recycle, Globe } from 'lucide-react';
+import Layout from '../components/layout/Layout';
+import { useLocation } from 'react-router-dom';
 
 const Explore: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const location = useLocation();
+  const initialQuery = new URLSearchParams(location.search).get('q') || '';
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   const trendingTopics = [
     { tag: 'zerowaste', posts: 1234, icon: <Recycle className="w-4 h-4" /> },
@@ -30,6 +34,7 @@ const Explore: React.FC = () => {
   ];
 
   return (
+    <Layout showParticles={false}>
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
@@ -166,6 +171,7 @@ const Explore: React.FC = () => {
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 

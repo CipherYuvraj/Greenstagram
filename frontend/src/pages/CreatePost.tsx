@@ -1,8 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { Camera, Image, MapPin, Hash, Leaf, Upload, X, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Layout from '../components/layout/Layout';
+import { useNavigate } from 'react-router-dom';
+import { apiService } from '../services/api';
 
 const CreatePost: React.FC = () => {
+  const navigate = useNavigate();
   const [caption, setCaption] = useState('');
   const [location, setLocation] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -72,43 +76,43 @@ const CreatePost: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!caption.trim()) {
       toast.error('Please add a caption');
       return;
     }
 
-    if (selectedImages.length === 0) {
-      toast.error('Please select at least one image');
-      return;
-    }
-
     setIsSubmitting(true);
-    
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await apiService.post('/posts', {
+        content: caption,
+        hashtags: selectedTags,
+        ...(location.trim() ? { location: { name: location } } : {}),
+        visibility: 'public',
+        isEcoPost: true,
+      });
+
       toast.success('Post created successfully! 🌱');
-      
+
       // Reset form
       setCaption('');
       setLocation('');
       setSelectedTags([]);
       setSelectedImages([]);
-      setPreviewUrls([]);
-      
-      // Revoke all preview URLs
       previewUrls.forEach(url => URL.revokeObjectURL(url));
-      
-    } catch (error) {
-      toast.error('Failed to create post. Please try again.');
+      setPreviewUrls([]);
+
+      navigate('/');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to create post. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
+    <Layout showParticles={false}>
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
@@ -318,6 +322,7 @@ const CreatePost: React.FC = () => {
         </form>
       </div>
     </div>
+    </Layout>
   );
 };
 

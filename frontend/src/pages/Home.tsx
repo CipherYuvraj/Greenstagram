@@ -61,12 +61,10 @@ const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({
                 <Plus className="w-4 h-4" />
                 <span>Create</span>
               </Link>
-              
-              {/* Profile Button - Fixed to navigate to profile page */}
-                          <div className="flex items-center space-x-4">
+
               <ThemeToggle />
-              
-              <Link 
+
+              <Link
                 to={`/profile/${user?.username || 'me'}`}
                 className="flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-lg transition-all duration-200"
               >
@@ -77,15 +75,6 @@ const Layout: React.FC<{ children: React.ReactNode; className?: string }> = ({
                 </div>
                 <span className="text-gray-700 dark:text-gray-300 font-medium transition-colors duration-300">{user?.username || 'User'}</span>
               </Link>
-
-              <button
-                onClick={handleLogout}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
 
               <button
                 onClick={handleLogout}
@@ -228,6 +217,7 @@ const AnimatedButton: React.FC<{
 const Home: React.FC = () => {
   const { user, fetchProfile } = useAuthStore();
   const { fetchNotifications } = useNotificationStore();
+  const navigate = useNavigate();
   const [feedType, setFeedType] = useState('following');
 
   // Fetch user profile and notifications on mount
@@ -499,7 +489,7 @@ const Home: React.FC = () => {
               }
             </p>
             <AnimatedButton
-              onClick={() => window.location.href = '/explore'}
+              onClick={() => navigate('/explore')}
               icon={Sparkles}
             >
               Explore Content
